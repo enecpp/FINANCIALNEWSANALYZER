@@ -367,132 +367,52 @@ class FinancialAnalyzerApp:
                 background: linear-gradient(135deg, #3c5a78 0%, #34495e 100%);
             }
             
-            /* Sidebar styling - Professional approach */
+            /* Sidebar - Simple and Working Solution */
             section[data-testid="stSidebar"] {
                 width: 350px !important;
                 min-width: 350px !important;
-                max-width: 350px !important;
-                transition: width 0.3s ease, margin-left 0.3s ease !important;
-                position: relative !important;
-                overflow: visible !important;
+                transition: all 0.3s ease !important;
             }
             
             section[data-testid="stSidebar"] > div {
                 width: 350px !important;
                 min-width: 350px !important;
-                max-width: 350px !important;
                 background: linear-gradient(180deg, #1a1a1a 0%, #2c3e50 100%) !important;
                 color: #ffffff !important;
-                overflow-y: auto !important;
-                overflow-x: hidden !important;
             }
             
-            /* Collapsed state - Complete hiding */
-            section[data-testid="stSidebar"].st-emotion-cache-1d391kg {
-                width: 0px !important;
-                min-width: 0px !important;
-                max-width: 0px !important;
-                margin-left: 0px !important;
+            /* When collapsed - just hide content, keep toggle working */
+            section[data-testid="stSidebar"][data-collapsed="true"] {
+                width: 60px !important;
+                min-width: 60px !important;
+            }
+            
+            section[data-testid="stSidebar"][data-collapsed="true"] > div {
+                width: 60px !important;
+                min-width: 60px !important;
                 overflow: hidden !important;
             }
             
-            section[data-testid="stSidebar"].st-emotion-cache-1d391kg > div {
-                width: 0px !important;
-                min-width: 0px !important;
-                max-width: 0px !important;
-                overflow: hidden !important;
-                visibility: hidden !important;
-            }
-            
-            /* Alternative collapsed state selector */
-            section[data-testid="stSidebar"][aria-expanded="false"] {
-                width: 0px !important;
-                min-width: 0px !important;
-                max-width: 0px !important;
-                overflow: hidden !important;
-            }
-            
-            section[data-testid="stSidebar"][aria-expanded="false"] > div {
-                width: 0px !important;
-                min-width: 0px !important;
-                max-width: 0px !important;
-                overflow: hidden !important;
-                visibility: hidden !important;
-            }
-            
-            /* Main content responsive to sidebar state */
-            .main {
-                transition: margin-left 0.3s ease !important;
-            }
-            
-            .main .block-container {
-                max-width: none !important;
-                padding-left: 2rem !important;
-                padding-right: 2rem !important;
-            }
-            
-            /* Hamburger button enhancement */
-            button[kind="header"] {
-                background: rgba(44, 62, 80, 0.95) !important;
-                border: 1px solid #4a4a4a !important;
-                border-radius: 8px !important;
-                padding: 0.5rem !important;
-                transition: all 0.2s ease !important;
-            }
-            
-            button[kind="header"]:hover {
-                background: rgba(52, 73, 94, 0.95) !important;
-                transform: scale(1.05) !important;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
-            }
-            
-            /* Mobile optimizations */
+            /* Mobile responsive */
             @media screen and (max-width: 768px) {
                 section[data-testid="stSidebar"] {
                     width: 300px !important;
                     min-width: 300px !important;
-                    max-width: 300px !important;
-                    position: fixed !important;
-                    left: 0 !important;
-                    top: 0 !important;
-                    height: 100vh !important;
-                    z-index: 1000 !important;
-                    box-shadow: 2px 0 10px rgba(0,0,0,0.3) !important;
                 }
                 
                 section[data-testid="stSidebar"] > div {
                     width: 300px !important;
                     min-width: 300px !important;
-                    max-width: 300px !important;
-                    height: 100vh !important;
                 }
                 
-                /* Mobile collapsed state */
-                section[data-testid="stSidebar"].st-emotion-cache-1d391kg,
-                section[data-testid="stSidebar"][aria-expanded="false"] {
-                    left: -300px !important;
-                    width: 300px !important;
-                    min-width: 300px !important;
-                    max-width: 300px !important;
+                section[data-testid="stSidebar"][data-collapsed="true"] {
+                    width: 0px !important;
+                    min-width: 0px !important;
                 }
                 
-                /* Main content on mobile */
-                .main .block-container {
-                    padding-left: 1rem !important;
-                    padding-right: 1rem !important;
-                    max-width: 100% !important;
-                }
-                
-                /* Overlay when sidebar is open on mobile */
-                section[data-testid="stSidebar"]:not(.st-emotion-cache-1d391kg):not([aria-expanded="false"])::before {
-                    content: '';
-                    position: fixed;
-                    top: 0;
-                    left: 300px;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0,0,0,0.5);
-                    z-index: 999;
+                section[data-testid="stSidebar"][data-collapsed="true"] > div {
+                    width: 0px !important;
+                    min-width: 0px !important;
                 }
             }
             
