@@ -1,6 +1,11 @@
 """
 Financial News Analyzer
-Modern financial analysis platform for market intelligence
+Modern financial analysis platform for market         st.set_page_config(
+            page_title="🏦 Financial News Analyzer",
+            page_icon="🏦",
+            layout="wide",
+            initial_sidebar_state="auto"
+        )igence
 
 This application provides:
 - Clean Architecture with layered design
@@ -375,6 +380,45 @@ class FinancialAnalyzerApp:
                 max-width: 350px !important;
                 background: linear-gradient(180deg, #1a1a1a 0%, #2c3e50 100%);
                 color: #ffffff;
+            }
+            
+            /* Mobile responsive sidebar */
+            @media screen and (max-width: 768px) {
+                section[data-testid="stSidebar"] {
+                    width: 0px !important;
+                    min-width: 0px !important;
+                    max-width: 0px !important;
+                    transform: translateX(-100%) !important;
+                    transition: all 0.3s ease !important;
+                }
+                
+                section[data-testid="stSidebar"] > div {
+                    width: 0px !important;
+                    min-width: 0px !important;
+                    max-width: 0px !important;
+                    overflow: hidden !important;
+                    opacity: 0 !important;
+                }
+                
+                section[data-testid="stSidebar"][data-collapsed="false"] {
+                    width: 280px !important;
+                    min-width: 280px !important;
+                    max-width: 280px !important;
+                    transform: translateX(0) !important;
+                }
+                
+                section[data-testid="stSidebar"][data-collapsed="false"] > div {
+                    width: 280px !important;
+                    min-width: 280px !important;
+                    max-width: 280px !important;
+                    opacity: 1 !important;
+                }
+                
+                /* Main content full width on mobile when sidebar closed */
+                .main .block-container {
+                    padding-left: 1rem !important;
+                    max-width: 100% !important;
+                }
             }
             
             /* Sidebar text handling */
