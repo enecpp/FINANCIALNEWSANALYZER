@@ -15,7 +15,7 @@ st.set_page_config(
     page_title="📈 Market Data",
     page_icon="📈",
     layout="wide",
-    initial_sidebar_state="auto"
+    initial_sidebar_state="collapsed"
 )
 
 def load_custom_css():
@@ -180,11 +180,12 @@ def load_custom_css():
         background: var(--tertiary-bg);
     }
     
-    /* Sidebar styling with fixed width */
+    /* Sidebar styling with responsive width */
     section[data-testid="stSidebar"] {
         width: 350px !important;
         min-width: 350px !important;
         max-width: 350px !important;
+        transition: all 0.3s ease !important;
     }
     
     section[data-testid="stSidebar"] > div {
@@ -193,44 +194,41 @@ def load_custom_css():
         max-width: 350px !important;
         background: linear-gradient(180deg, var(--primary-bg) 0%, var(--secondary-bg) 100%);
         color: var(--text-primary);
+        transition: all 0.3s ease !important;
     }
     
-    /* Mobile responsive sidebar */
+    /* Collapsed sidebar */
+    section[data-testid="stSidebar"][data-collapsed="true"] {
+        width: 0px !important;
+        min-width: 0px !important;
+        max-width: 0px !important;
+    }
+    
+    section[data-testid="stSidebar"][data-collapsed="true"] > div {
+        width: 0px !important;
+        min-width: 0px !important;
+        max-width: 0px !important;
+        overflow: hidden !important;
+    }
+    
+    /* Mobile responsive adjustments */
     @media screen and (max-width: 768px) {
         section[data-testid="stSidebar"] {
-            width: 0px !important;
-            min-width: 0px !important;
-            max-width: 0px !important;
-            transform: translateX(-100%) !important;
-            transition: all 0.3s ease !important;
+            width: 280px !important;
+            min-width: 280px !important;
+            max-width: 280px !important;
         }
         
         section[data-testid="stSidebar"] > div {
-            width: 0px !important;
-            min-width: 0px !important;
-            max-width: 0px !important;
-            overflow: hidden !important;
-            opacity: 0 !important;
-        }
-        
-        section[data-testid="stSidebar"][data-collapsed="false"] {
             width: 280px !important;
             min-width: 280px !important;
             max-width: 280px !important;
-            transform: translateX(0) !important;
         }
         
-        section[data-testid="stSidebar"][data-collapsed="false"] > div {
-            width: 280px !important;
-            min-width: 280px !important;
-            max-width: 280px !important;
-            opacity: 1 !important;
-        }
-        
-        /* Main content full width on mobile when sidebar closed */
+        /* Main content adjustments for mobile */
         .main .block-container {
             padding-left: 1rem !important;
-            max-width: 100% !important;
+            padding-right: 1rem !important;
         }
     }
     
