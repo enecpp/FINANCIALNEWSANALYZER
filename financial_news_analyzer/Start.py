@@ -1,11 +1,6 @@
 """
 Financial News Analyzer
-Modern financial analysis platform for market         st.set_page_config(
-            page_title="🏦 Financial News Analyzer",
-            page_icon="🏦",
-            layout="wide",
-            initial_sidebar_state="expanded"
-        )igence
+Modern financial analysis platform for market intelligence
 
 This application provides:
 - Clean Architecture with layered design
@@ -80,10 +75,10 @@ class FinancialAnalyzerApp:
     def _configure_page(self):
         """Configure Streamlit page settings"""
         st.set_page_config(
-            page_title="� Financial News Analyzer",
+            page_title="📊 Financial News Analyzer",
             page_icon="📊",
             layout="wide",
-            initial_sidebar_state="expanded"
+            initial_sidebar_state="collapsed"
         )
     
     def _initialize_container(self):
@@ -280,7 +275,7 @@ class FinancialAnalyzerApp:
             # Render main header
             self._render_header()
             
-            # Render sidebar components
+            # Always render sidebar - let Streamlit handle visibility
             self._render_sidebar()
             
             # Render main content
@@ -297,10 +292,30 @@ class FinancialAnalyzerApp:
         """Apply custom CSS styling"""
         st.markdown("""
         <style>
-            /* Hide Streamlit default elements */
-            #MainMenu {visibility: hidden;}
+            /* Hide some Streamlit default elements but keep hamburger menu */
             footer {visibility: hidden;}
-            header {visibility: hidden;}
+            
+            /* Force hamburger button to be visible with smooth animation */
+            button[title="View fullscreen"] {
+                visibility: hidden;
+            }
+            
+            /* Enhanced hamburger menu animation */
+            button[data-testid="collapsedControl"] {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                border-radius: 8px !important;
+            }
+            
+            button[data-testid="collapsedControl"]:hover {
+                transform: scale(1.1) rotate(5deg) !important;
+                background-color: rgba(0, 212, 170, 0.1) !important;
+                box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3) !important;
+            }
+            
+            button[data-testid="collapsedControl"]:active {
+                transform: scale(0.95) !important;
+                transition: all 0.1s ease-in-out !important;
+            }
             
             /* Modern animations */
             @keyframes fadeInUp {
@@ -349,7 +364,7 @@ class FinancialAnalyzerApp:
                 animation: pulse 2s infinite;
             }
             
-            /* Modern buttons */
+            /* Modern buttons with enhanced smooth transitions */
             .stButton > button {
                 background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
                 border: 1px solid #4a4a4a;
@@ -357,80 +372,105 @@ class FinancialAnalyzerApp:
                 color: #ffffff;
                 font-weight: 600;
                 padding: 0.75rem 2rem;
-                transition: all 0.3s ease;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             }
             
             .stButton > button:hover {
-                transform: translateY(-2px);
+                transform: translateY(-2px) scale(1.02);
+                box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3);
+                background: linear-gradient(135deg, #3c5a78 0%, #34495e 100%);
+            }
+            
+            .stButton > button:active {
+                transform: translateY(-1px) scale(1.01);
+                transition: all 0.1s ease-in-out;
+            }
                 box-shadow: 0 4px 12px rgba(0,0,0,0.4);
                 background: linear-gradient(135deg, #3c5a78 0%, #34495e 100%);
             }
             
-            /* Sidebar - Simple and Working Solution */
-            section[data-testid="stSidebar"] {
-                width: 350px !important;
-                min-width: 350px !important;
-                transition: all 0.3s ease !important;
-            }
-            
+            /* Sidebar - only background styling, allow native Streamlit behavior with smooth transitions */
             section[data-testid="stSidebar"] > div {
-                width: 350px !important;
-                min-width: 350px !important;
                 background: linear-gradient(180deg, #1a1a1a 0%, #2c3e50 100%) !important;
                 color: #ffffff !important;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
             }
             
-            /* When collapsed - fully hide sidebar on collapse */
-            section[data-testid="stSidebar"][data-collapsed="true"],
-            section[data-testid="stSidebar"][aria-expanded="false"] {
-                width: 0px !important;
-                min-width: 0px !important;
-                overflow: hidden !important;
+            /* Enhanced sidebar animations */
+            section[data-testid="stSidebar"] {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
             }
             
-            section[data-testid="stSidebar"][data-collapsed="true"] > div,
-            section[data-testid="stSidebar"][aria-expanded="false"] > div {
-                width: 0px !important;
-                min-width: 0px !important;
-                overflow: hidden !important;
+            /* Smooth animations for sidebar elements */
+            section[data-testid="stSidebar"] * {
+                transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out !important;
             }
             
-            /* Mobile responsive */
-            @media screen and (max-width: 768px) {
-                section[data-testid="stSidebar"] {
-                    width: 300px !important;
-                    min-width: 300px !important;
+            /* Enhanced hover effects for sidebar elements */
+            section[data-testid="stSidebar"] .stSelectbox:hover,
+            section[data-testid="stSidebar"] .stMultiSelect:hover,
+            section[data-testid="stSidebar"] .stButton:hover {
+                transform: translateX(2px);
+                transition: transform 0.2s ease-in-out;
+            }
+            
+            /* Smooth scroll for sidebar */
+            section[data-testid="stSidebar"] {
+                scroll-behavior: smooth !important;
+            }
+            
+            /* Fade in animation for sidebar content */
+            section[data-testid="stSidebar"] .element-container {
+                animation: fadeInLeft 0.5s ease-out !important;
+            }
+            
+            @keyframes fadeInLeft {
+                from { 
+                    opacity: 0; 
+                    transform: translateX(-20px); 
                 }
-                
-                section[data-testid="stSidebar"] > div {
-                    width: 300px !important;
-                    min-width: 300px !important;
-                }
-                
-                section[data-testid="stSidebar"][data-collapsed="true"] {
-                    width: 0px !important;
-                    min-width: 0px !important;
-                }
-                
-                section[data-testid="stSidebar"][data-collapsed="true"] > div {
-                    width: 0px !important;
-                    min-width: 0px !important;
+                to { 
+                    opacity: 1; 
+                    transform: translateX(0); 
                 }
             }
             
-            /* Sidebar text handling */
+            /* Sidebar text handling with smooth animations */
             .sidebar-content {
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 font-size: 0.85rem;
                 line-height: 1.2;
+                transition: all 0.2s ease-in-out;
             }
             
-            /* Multiselect and selectbox styling */
+            .sidebar-content:hover {
+                opacity: 0.8;
+                transform: scale(1.02);
+            }
+            
+            /* Multiselect and selectbox styling with smooth transitions */
             .stSelectbox label, .stMultiSelect label {
                 font-size: 0.9rem !important;
+                font-weight: 600 !important;
+                color: #ffffff !important;
+                white-space: nowrap !important;
+                transition: color 0.2s ease-in-out !important;
+            }
+            
+            .stSelectbox > div > div, .stMultiSelect > div > div {
+                min-width: 300px !important;
+                font-size: 0.85rem !important;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                border-radius: 8px !important;
+            }
+            
+            .stSelectbox > div > div:hover, .stMultiSelect > div > div:hover {
+                box-shadow: 0 4px 12px rgba(0, 212, 170, 0.2) !important;
+                transform: translateY(-1px) !important;
+            }
                 font-weight: 600 !important;
                 color: #ffffff !important;
                 white-space: nowrap !important;
@@ -449,6 +489,23 @@ class FinancialAnalyzerApp:
                 font-size: 0.8em;
                 font-weight: bold;
                 margin: 2px;
+            }
+            
+            /* Metric card styling */
+            .metric-card {
+                background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+                padding: 20px;
+                border-radius: 15px;
+                border: 1px solid #3a3a3a;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                transition: all 0.3s ease;
+                margin: 10px 0;
+                color: #ffffff;
+            }
+            
+            .metric-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 30px rgba(0, 212, 170, 0.2);
             }
             
             .status-healthy {
