@@ -1,6 +1,6 @@
 """
-Market Data Analysis Page
-Real-time market data visualization and technical analysis
+Financial News Analysis Page
+Advanced financial news sentiment analysis with AI-powered insights
 """
 
 import streamlit as st
@@ -12,8 +12,8 @@ import numpy as np
 
 # Page configuration
 st.set_page_config(
-    page_title="📈 Market Data",
-    page_icon="📈",
+    page_title="📊 Financial Analysis",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -68,11 +68,6 @@ def load_custom_css():
         50% { box-shadow: 0 0 20px rgba(0, 212, 170, 0.8), 0 0 30px rgba(0, 212, 170, 0.4); }
     }
     
-    @keyframes gradient-shift {
-        0%, 100% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-    }
-    
     /* App background with animation */
     .stApp {
         background-color: var(--primary-bg) !important;
@@ -108,17 +103,17 @@ def load_custom_css():
         animation: glow 2s infinite;
     }
     
-    .price-up {
+    .sentiment-positive {
         border-left: 4px solid #00D4AA;
         background: linear-gradient(135deg, #2c3e50 0%, rgba(0, 212, 170, 0.1) 100%);
     }
     
-    .price-down {
+    .sentiment-negative {
         border-left: 4px solid #FF6B6B;
         background: linear-gradient(135deg, #2c3e50 0%, rgba(255, 107, 107, 0.1) 100%);
     }
     
-    .price-stable {
+    .sentiment-neutral {
         border-left: 4px solid #4ECDC4;
         background: linear-gradient(135deg, #2c3e50 0%, rgba(78, 205, 196, 0.1) 100%);
     }
@@ -133,6 +128,7 @@ def load_custom_css():
         font-size: 2.5rem;
         text-align: center;
         margin-bottom: 30px;
+        animation: slideInRight 1s ease-out;
         background-size: 200% 200%;
         animation: gradient-shift 3s ease-in-out infinite, slideInRight 1s ease-out;
     }
@@ -178,6 +174,69 @@ def load_custom_css():
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
         background: var(--tertiary-bg);
+    }
+    
+    /* Quick selection buttons */
+    .quick-selection-button {
+        background: linear-gradient(135deg, var(--accent-color) 0%, #2ECC71 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 10px 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: white;
+        transition: all 0.3s ease;
+        margin: 2px;
+        box-shadow: 0 3px 10px rgba(0, 212, 170, 0.3);
+        width: 100% !important;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+    
+    .quick-selection-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0, 212, 170, 0.5);
+        background: linear-gradient(135deg, #2ECC71 0%, var(--accent-color) 100%);
+    }
+    
+    /* Quick selection container styling */
+    .stButton[data-baseweb="button"] {
+        width: 100% !important;
+    }
+    
+    .stButton > button[kind="secondary"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        border: none !important;
+        border-radius: 8px !important;
+        color: white !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        padding: 0.5rem 1rem !important;
+        font-size: 0.85rem !important;
+        width: 100% !important;
+        box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3) !important;
+    }
+    
+    .stButton > button[kind="secondary"]:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5) !important;
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+    }
+    
+    /* Clear button styling */
+    .clear-button {
+        background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .clear-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
     }
     
     /* Sidebar styling with responsive width */
@@ -254,7 +313,7 @@ def load_custom_css():
         font-size: 0.85rem !important;
     }
     
-    /* Chart containers */
+    /* Chart containers with animations */
     .chart-container {
         background: var(--gradient-1);
         border-radius: 15px;
@@ -262,279 +321,304 @@ def load_custom_css():
         margin: 10px 0;
         border: 1px solid var(--border-color);
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        animation: fadeInUp 0.8s ease-out;
+        transition: all 0.3s ease;
     }
     
-    /* Price change indicators */
-    .price-change-positive {
-        color: #00D4AA;
-        font-weight: bold;
-    }
-    
-    .price-change-negative {
-        color: #FF6B6B;
-        font-weight: bold;
+    .chart-container:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     }
     </style>
     """, unsafe_allow_html=True)
 
 def get_company_database():
-    """Get comprehensive company database with categories and symbols"""
+    """Get comprehensive company database with categories"""
     return {
-        'Technology': {
-            'Apple': 'AAPL', 'Microsoft': 'MSFT', 'Google': 'GOOGL', 'Amazon': 'AMZN', 'Meta': 'META', 
-            'Netflix': 'NFLX', 'NVIDIA': 'NVDA', 'Adobe': 'ADBE', 'Salesforce': 'CRM', 'Oracle': 'ORCL',
-            'IBM': 'IBM', 'Intel': 'INTC', 'AMD': 'AMD', 'Qualcomm': 'QCOM', 'Broadcom': 'AVGO', 
-            'Texas Instruments': 'TXN', 'Applied Materials': 'AMAT', 'Micron': 'MU', 'Cisco Systems': 'CSCO',
-            'VMware': 'VMW', 'ServiceNow': 'NOW', 'Snowflake': 'SNOW', 'CrowdStrike': 'CRWD', 'Zoom': 'ZM',
-            'Slack': 'WORK', 'Dropbox': 'DBX', 'Box': 'BOX', 'Atlassian': 'TEAM', 'Splunk': 'SPLK',
-            'Palantir': 'PLTR', 'Unity': 'U', 'Roblox': 'RBLX', 'Shopify': 'SHOP', 'Square': 'SQ',
-            'PayPal': 'PYPL', 'Twilio': 'TWLO', 'MongoDB': 'MDB', 'Datadog': 'DDOG', 'Okta': 'OKTA'
-        },
-        'Finance': {
-            'JPMorgan Chase': 'JPM', 'Bank of America': 'BAC', 'Wells Fargo': 'WFC', 'Citigroup': 'C',
-            'Goldman Sachs': 'GS', 'Morgan Stanley': 'MS', 'American Express': 'AXP', 'Visa': 'V',
-            'Mastercard': 'MA', 'BlackRock': 'BLK', 'Charles Schwab': 'SCHW', 'Berkshire Hathaway': 'BRK.A',
-            'Progressive': 'PGR', 'Allstate': 'ALL', 'Travelers': 'TRV', 'AIG': 'AIG', 'MetLife': 'MET',
-            'Prudential': 'PRU', 'Aflac': 'AFL', 'Capital One': 'COF', 'Discover': 'DIS', 'Coinbase': 'COIN'
-        },
-        'Healthcare': {
-            'Johnson & Johnson': 'JNJ', 'Pfizer': 'PFE', 'UnitedHealth': 'UNH', 'Merck': 'MRK',
-            'AbbVie': 'ABBV', 'Bristol Myers Squibb': 'BMY', 'Eli Lilly': 'LLY', 'Amgen': 'AMGN',
-            'Gilead Sciences': 'GILD', 'Regeneron': 'REGN', 'Vertex Pharmaceuticals': 'VRTX', 'Biogen': 'BIIB',
-            'Moderna': 'MRNA', 'Abbott Laboratories': 'ABT', 'Danaher': 'DHR', 'Thermo Fisher Scientific': 'TMO',
-            'Intuitive Surgical': 'ISRG', 'Medtronic': 'MDT', 'Boston Scientific': 'BSX', 'Stryker': 'SYK'
-        },
-        'Energy': {
-            'ExxonMobil': 'XOM', 'Chevron': 'CVX', 'ConocoPhillips': 'COP', 'EOG Resources': 'EOG',
-            'Pioneer Natural Resources': 'PXD', 'Schlumberger': 'SLB', 'Halliburton': 'HAL', 'Baker Hughes': 'BKR',
-            'Kinder Morgan': 'KMI', 'NextEra Energy': 'NEE', 'Duke Energy': 'DUK', 'Southern Company': 'SO',
-            'Tesla Energy': 'TSLA', 'First Solar': 'FSLR', 'SunPower': 'SPWR', 'Enphase Energy': 'ENPH'
-        },
-        'Consumer': {
-            'Walmart': 'WMT', 'Target': 'TGT', 'Home Depot': 'HD', 'Lowes': 'LOW', 'Costco': 'COST',
-            'Best Buy': 'BBY', 'Macys': 'M', 'TJX Companies': 'TJX', 'Dollar General': 'DG', 'CVS Health': 'CVS',
-            'Walgreens': 'WBA', 'Coca-Cola': 'KO', 'PepsiCo': 'PEP', 'Procter & Gamble': 'PG',
-            'Nike': 'NKE', 'Starbucks': 'SBUX', 'McDonald\'s': 'MCD', 'Disney': 'DIS'
-        },
-        'Automotive': {
-            'Tesla': 'TSLA', 'Ford': 'F', 'General Motors': 'GM', 'Toyota': 'TM', 'Honda': 'HMC',
-            'Ferrari': 'RACE', 'Lucid Motors': 'LCID', 'Rivian': 'RIVN', 'NIO': 'NIO', 'XPeng': 'XPEV',
-            'Li Auto': 'LI', 'BYD': 'BYDDY'
-        },
-        'Real Estate': {
-            'American Tower': 'AMT', 'Prologis': 'PLD', 'Crown Castle': 'CCI', 'Equinix': 'EQIX',
-            'Public Storage': 'PSA', 'Realty Income': 'O', 'Simon Property Group': 'SPG', 'CBRE Group': 'CBRE',
-            'Zillow': 'ZG', 'Redfin': 'RDFN'
-        },
-        'Industrial': {
-            'Boeing': 'BA', 'Lockheed Martin': 'LMT', 'Raytheon': 'RTX', 'Northrop Grumman': 'NOC',
-            'General Electric': 'GE', 'Caterpillar': 'CAT', 'Deere & Company': 'DE', '3M Company': 'MMM',
-            'Honeywell': 'HON', 'Waste Management': 'WM', 'Republic Services': 'RSG'
-        }
+        'Technology': [
+            'Apple', 'Microsoft', 'Google', 'Amazon', 'Meta', 'Netflix', 'NVIDIA', 'Adobe', 'Salesforce', 'Oracle',
+            'IBM', 'Intel', 'AMD', 'Qualcomm', 'Broadcom', 'Texas Instruments', 'Applied Materials', 'Micron',
+            'Advanced Micro Devices', 'Cisco Systems', 'VMware', 'ServiceNow', 'Snowflake', 'CrowdStrike', 'Zoom',
+            'Slack', 'Dropbox', 'Box', 'Atlassian', 'Splunk', 'Palantir', 'Unity', 'Roblox', 'Shopify', 'Square',
+            'PayPal', 'Stripe', 'Twilio', 'MongoDB', 'Datadog', 'Okta', 'Zscaler', 'Cloudflare', 'GitLab'
+        ],
+        'Finance': [
+            'JPMorgan Chase', 'Bank of America', 'Wells Fargo', 'Citigroup', 'Goldman Sachs', 'Morgan Stanley',
+            'American Express', 'Visa', 'Mastercard', 'BlackRock', 'Charles Schwab', 'Berkshire Hathaway',
+            'Aon', 'Marsh & McLennan', 'Progressive', 'Allstate', 'Travelers', 'AIG', 'MetLife', 'Prudential',
+            'Aflac', 'Lincoln National', 'Principal Financial', 'Raymond James', 'E*TRADE', 'TD Ameritrade',
+            'Fidelity', 'Vanguard', 'State Street', 'Northern Trust', 'BNY Mellon', 'Capital One', 'Discover',
+            'Synchrony Financial', 'Ally Financial', 'LendingClub', 'SoFi', 'Robinhood', 'Coinbase'
+        ],
+        'Healthcare': [
+            'Johnson & Johnson', 'Pfizer', 'UnitedHealth', 'Merck', 'AbbVie', 'Bristol Myers Squibb', 'Eli Lilly',
+            'Amgen', 'Gilead Sciences', 'Regeneron', 'Vertex Pharmaceuticals', 'Biogen', 'Moderna', 'Novavax',
+            'Abbott Laboratories', 'Danaher', 'Thermo Fisher Scientific', 'Intuitive Surgical', 'Medtronic',
+            'Boston Scientific', 'Stryker', 'Zimmer Biomet', 'Edwards Lifesciences', 'Illumina', 'IQVIA',
+            'Anthem', 'Humana', 'Cigna', 'Aetna', 'Centene', 'Molina Healthcare', 'WellCare', 'Teladoc',
+            'Veracyte', 'Exact Sciences', 'Guardant Health', 'Foundation Medicine', '10x Genomics'
+        ],
+        'Energy': [
+            'ExxonMobil', 'Chevron', 'ConocoPhillips', 'EOG Resources', 'Pioneer Natural Resources', 'Schlumberger',
+            'Halliburton', 'Baker Hughes', 'Kinder Morgan', 'Enterprise Products Partners', 'Plains All American',
+            'Enbridge', 'TC Energy', 'Suncor Energy', 'Canadian Natural Resources', 'Imperial Oil', 'Cenovus',
+            'NextEra Energy', 'Duke Energy', 'Southern Company', 'Dominion Energy', 'American Electric Power',
+            'Exelon', 'Sempra Energy', 'Public Service Enterprise Group', 'Consolidated Edison', 'Xcel Energy',
+            'Tesla Energy', 'First Solar', 'SunPower', 'Enphase Energy', 'SolarEdge', 'Bloom Energy'
+        ],
+        'Consumer': [
+            'Walmart', 'Target', 'Home Depot', 'Lowes', 'Costco', 'Best Buy', 'Macys', 'Nordstrom', 'TJX Companies',
+            'Ross Stores', 'Dollar General', 'Dollar Tree', 'CVS Health', 'Walgreens', 'Rite Aid', 'Amazon Retail',
+            'eBay', 'Etsy', 'Wayfair', 'Overstock', 'Chewy', 'Petco', 'PetSmart', 'GameStop', 'Barnes & Noble',
+            'Coca-Cola', 'PepsiCo', 'Nestle', 'Unilever', 'Procter & Gamble', 'Colgate-Palmolive', 'Kimberly-Clark',
+            'General Mills', 'Kellogg', 'Kraft Heinz', 'Tyson Foods', 'Hormel', 'ConAgra', 'Campbell Soup'
+        ],
+        'Automotive': [
+            'Tesla', 'Ford', 'General Motors', 'Stellantis', 'Toyota', 'Honda', 'Nissan', 'Hyundai', 'BMW',
+            'Mercedes-Benz', 'Volkswagen', 'Audi', 'Porsche', 'Ferrari', 'Lucid Motors', 'Rivian', 'NIO',
+            'XPeng', 'Li Auto', 'BYD', 'Geely', 'Great Wall Motors', 'SAIC Motor', 'Magna International',
+            'Aptiv', 'Lear Corporation', 'BorgWarner', 'Eaton', 'Cummins', 'PACCAR', 'Navistar', 'Thor Industries'
+        ],
+        'Real Estate': [
+            'American Tower', 'Prologis', 'Crown Castle', 'Equinix', 'Public Storage', 'Welltower', 'Realty Income',
+            'Simon Property Group', 'Digital Realty Trust', 'SBA Communications', 'Extra Space Storage', 'AvalonBay',
+            'Equity Residential', 'Boston Properties', 'Ventas', 'Host Hotels & Resorts', 'Kimco Realty',
+            'Federal Realty', 'Regency Centers', 'Brixmor Property', 'CBRE Group', 'Jones Lang LaSalle',
+            'Cushman & Wakefield', 'Colliers', 'Marcus & Millichap', 'Realogy', 'Compass', 'Zillow', 'Redfin'
+        ],
+        'Industrial': [
+            'Boeing', 'Lockheed Martin', 'Raytheon', 'Northrop Grumman', 'General Dynamics', 'Honeywell',
+            'General Electric', 'Caterpillar', 'Deere & Company', 'Illinois Tool Works', '3M Company',
+            'Emerson Electric', 'Parker-Hannifin', 'Eaton Corporation', 'Ingersoll Rand', 'Stanley Black & Decker',
+            'Fastenal', 'W.W. Grainger', 'MSC Industrial', 'Cintas', 'Waste Management', 'Republic Services',
+            'Rollins', 'Pentair', 'A.O. Smith', 'Xylem', 'Danaher Corporation', 'Fortive', 'Roper Technologies'
+        ]
     }
 
-def generate_market_data():
-    """Generate comprehensive market data for all companies"""
+def generate_news_headline_and_link(company, news_type, sentiment):
+    """Generate realistic news headlines and links for companies"""
+    
+    # Company symbol mapping for more realistic URLs
+    company_symbols = {
+        'Apple': 'AAPL', 'Microsoft': 'MSFT', 'Google': 'GOOGL', 'Amazon': 'AMZN',
+        'Tesla': 'TSLA', 'Meta': 'META', 'Netflix': 'NFLX', 'IBM': 'IBM',
+        'JPMorgan Chase': 'JPM', 'Bank of America': 'BAC', 'Wells Fargo': 'WFC',
+        'Goldman Sachs': 'GS', 'Johnson & Johnson': 'JNJ', 'Pfizer': 'PFE',
+        'ExxonMobil': 'XOM', 'Chevron': 'CVX', 'Coca-Cola': 'KO', 'PepsiCo': 'PEP'
+    }
+    
+    symbol = company_symbols.get(company, company.replace(' ', '').upper()[:4])
+    
+    # News headline templates based on type and sentiment
+    headlines = {
+        'Earnings': {
+            'Positive': [
+                f"{company} Reports Strong Q3 Earnings, Beats Wall Street Expectations",
+                f"{company} Delivers Record Quarterly Revenue Growth",
+                f"{company} Exceeds Profit Forecasts in Latest Earnings Report"
+            ],
+            'Negative': [
+                f"{company} Misses Earnings Estimates, Stock Falls",
+                f"{company} Reports Disappointing Quarterly Results",
+                f"{company} Faces Revenue Decline in Latest Quarter"
+            ],
+            'Neutral': [
+                f"{company} Releases Q3 Financial Results",
+                f"{company} Reports Mixed Quarterly Performance",
+                f"{company} Announces Quarterly Earnings Update"
+            ]
+        },
+        'Product Launch': {
+            'Positive': [
+                f"{company} Unveils Revolutionary New Product Line",
+                f"{company} Launches Innovative Technology Solution",
+                f"{company} Introduces Game-Changing Product Innovation"
+            ],
+            'Negative': [
+                f"{company} Product Launch Faces Technical Issues",
+                f"{company} Delays Major Product Release",
+                f"{company} New Product Receives Mixed Market Response"
+            ],
+            'Neutral': [
+                f"{company} Announces New Product Development",
+                f"{company} Reveals Upcoming Product Portfolio",
+                f"{company} Updates Product Roadmap"
+            ]
+        },
+        'Market Analysis': {
+            'Positive': [
+                f"Analysts Upgrade {company} Stock Rating",
+                f"{company} Shows Strong Market Position",
+                f"Bullish Outlook for {company} Shares"
+            ],
+            'Negative': [
+                f"Market Concerns Over {company} Performance",
+                f"Analysts Downgrade {company} Stock",
+                f"{company} Faces Market Headwinds"
+            ],
+            'Neutral': [
+                f"Market Analysis: {company} Stock Review",
+                f"{company} Market Performance Update",
+                f"Investment Analysis: {company} Outlook"
+            ]
+        },
+        'Merger': {
+            'Positive': [
+                f"{company} Announces Strategic Merger Deal",
+                f"{company} Completes Major Acquisition",
+                f"{company} Merger Creates Market Leader"
+            ],
+            'Negative': [
+                f"{company} Merger Talks Fall Through",
+                f"{company} Acquisition Faces Regulatory Issues",
+                f"{company} Merger Delayed Due to Complications"
+            ],
+            'Neutral': [
+                f"{company} Explores Merger Opportunities",
+                f"{company} Merger Under Review",
+                f"{company} Announces Merger Discussions"
+            ]
+        }
+    }
+    
+    # Default headlines for other news types
+    default_headlines = {
+        'Positive': f"{company} Shows Strong Performance",
+        'Negative': f"{company} Faces Challenges",
+        'Neutral': f"{company} Business Update"
+    }
+    
+    # Select headline
+    if news_type in headlines:
+        headline = np.random.choice(headlines[news_type][sentiment])
+    else:
+        headline = default_headlines[sentiment]
+    
+    # Generate realistic news links
+    sources_urls = {
+        'Reuters': f"https://www.reuters.com/business/{symbol.lower()}-{news_type.lower()}-{datetime.now().strftime('%Y-%m-%d')}",
+        'Bloomberg': f"https://www.bloomberg.com/news/articles/{datetime.now().strftime('%Y-%m-%d')}/{symbol.lower()}-{news_type.lower()}",
+        'CNBC': f"https://www.cnbc.com/{datetime.now().strftime('%Y/%m/%d')}/{symbol.lower()}-{news_type.lower()}.html",
+        'Financial Times': f"https://www.ft.com/content/{symbol.lower()}-{news_type.lower()}-{datetime.now().strftime('%Y%m%d')}",
+        'Wall Street Journal': f"https://www.wsj.com/articles/{symbol.lower()}-{news_type.lower()}-{datetime.now().strftime('%Y%m%d')}"
+    }
+    
+    source = np.random.choice(list(sources_urls.keys()))
+    link = sources_urls[source]
+    
+    return headline, link
+
+def generate_sample_news_data(selected_companies=None):
+    """Generate sample financial news data for demonstration"""
     company_db = get_company_database()
     
-    # Set seed for consistent data generation
-    np.random.seed(42)
+    # Define news types and sentiments
+    news_types = ['Earnings', 'Product Launch', 'Market Analysis', 'Merger', 'Partnership', 'Regulation', 
+                  'IPO', 'Acquisition', 'Dividend', 'Stock Split', 'Guidance Update', 'Leadership Change']
+    sentiments = ['Positive', 'Negative', 'Neutral']
     
-    # Flatten the database to get all companies and symbols
-    all_stocks = []
-    for category, companies in company_db.items():
-        for company, symbol in companies.items():
-            all_stocks.append((symbol, company, category))
-    
-    # Generate data for ALL companies (not just a subset)
-    data = []
-    for symbol, company, category in all_stocks:
+    # If specific companies are selected, use ONLY them
+    if selected_companies and len(selected_companies) > 0:
+        # Set seed for reproducible results based on selected companies
+        seed_value = hash(tuple(sorted(selected_companies))) % 10000
+        np.random.seed(seed_value)
         
-        # Generate realistic price ranges based on category
-        if category == 'Technology':
-            base_price = np.random.uniform(50, 800)
-        elif category == 'Finance':
-            base_price = np.random.uniform(30, 400)
-        elif category == 'Healthcare':
-            base_price = np.random.uniform(40, 600)
-        elif category == 'Energy':
-            base_price = np.random.uniform(20, 300)
-        elif category == 'Consumer':
-            base_price = np.random.uniform(25, 500)
-        elif category == 'Automotive':
-            base_price = np.random.uniform(15, 400)
-        elif category == 'Real Estate':
-            base_price = np.random.uniform(10, 200)
-        else:  # Industrial
-            base_price = np.random.uniform(20, 350)
+        target_companies = selected_companies
+        # Generate guaranteed news for each selected company
+        news_per_company = 8
         
-        change_pct = np.random.uniform(-10, 10)
-        change_amount = base_price * (change_pct / 100)
+        data = []
         
-        # Generate market cap based on company type
-        market_cap = np.random.uniform(1, 3000)  # Billions
+        # Ensure each selected company gets exactly the specified amount of news
+        for company in target_companies:
+            for i in range(news_per_company):
+                date = datetime.now() - timedelta(days=np.random.randint(0, 30))
+                news_type = np.random.choice(news_types)
+                sentiment = np.random.choice(sentiments)
+                
+                # Generate sentiment score based on sentiment
+                if sentiment == 'Positive':
+                    score = np.random.uniform(0.5, 1.0)
+                elif sentiment == 'Negative':
+                    score = np.random.uniform(-1.0, -0.5)
+                else:
+                    score = np.random.uniform(-0.2, 0.2)
+                
+                # Generate realistic news headlines and links
+                news_headline, news_link = generate_news_headline_and_link(company, news_type, sentiment)
+                
+                data.append({
+                    'Date': date.strftime('%Y-%m-%d'),
+                    'Company': company,  # Exact company name from selection
+                    'News_Type': news_type,
+                    'Sentiment': sentiment,
+                    'Sentiment_Score': score,
+                    'Impact_Score': np.random.uniform(0.1, 1.0),
+                    'Source': np.random.choice(['Reuters', 'Bloomberg', 'CNBC', 'Financial Times', 'Wall Street Journal']),
+                    'Headline': news_headline,
+                    'News_Link': news_link
+                })
         
-        # Generate volume based on market cap (larger companies = higher volume)
-        volume = int(np.random.uniform(100000, 50000000) * (market_cap / 1000))
+        # Reset seed
+        np.random.seed(None)
+    else:
+        # If no specific selection, use all companies
+        all_companies = []
+        for category, companies in company_db.items():
+            all_companies.extend(companies)
+        target_companies = all_companies[:50]  # Limit for performance
+        news_count = 100
         
-        data.append({
-            'Symbol': symbol,
-            'Company': company,
-            'Category': category,
-            'Price': round(base_price, 2),
-            'Change': round(change_amount, 2),
-            'Change_Pct': round(change_pct, 2),
-            'Market_Cap': round(market_cap, 2),
-            'Volume': volume,
-            'Day_High': round(base_price * np.random.uniform(1.01, 1.08), 2),
-            'Day_Low': round(base_price * np.random.uniform(0.92, 0.99), 2),
-            'High_52w': round(base_price * np.random.uniform(1.1, 2.0), 2),
-            'Low_52w': round(base_price * np.random.uniform(0.3, 0.9), 2),
-            'PE_Ratio': round(np.random.uniform(8, 50), 2),
-            'Dividend_Yield': round(np.random.uniform(0, 8), 2)
-        })
-    
-    # Reset seed
-    np.random.seed(None)
+        data = []
+        for i in range(news_count):
+            date = datetime.now() - timedelta(days=np.random.randint(0, 30))
+            company = np.random.choice(target_companies)
+            news_type = np.random.choice(news_types)
+            sentiment = np.random.choice(sentiments)
+            
+            # Generate sentiment score based on sentiment
+            if sentiment == 'Positive':
+                score = np.random.uniform(0.5, 1.0)
+            elif sentiment == 'Negative':
+                score = np.random.uniform(-1.0, -0.5)
+            else:
+                score = np.random.uniform(-0.2, 0.2)
+            
+            # Generate realistic news headlines and links
+            news_headline, news_link = generate_news_headline_and_link(company, news_type, sentiment)
+            
+            data.append({
+                'Date': date.strftime('%Y-%m-%d'),
+                'Company': company,
+                'News_Type': news_type,
+                'Sentiment': sentiment,
+                'Sentiment_Score': score,
+                'Impact_Score': np.random.uniform(0.1, 1.0),
+                'Source': np.random.choice(['Reuters', 'Bloomberg', 'CNBC', 'Financial Times', 'Wall Street Journal']),
+                'Headline': news_headline,
+                'News_Link': news_link
+            })
     
     return pd.DataFrame(data)
 
-def generate_historical_data(symbol, days=365):
-    """Generate historical price data for a symbol"""
-    dates = pd.date_range(end=datetime.now(), periods=days, freq='D')
+def create_sentiment_chart(df):
+    """Create sentiment analysis chart"""
+    sentiment_counts = df['Sentiment'].value_counts()
     
-    # Generate realistic price movement
-    base_price = np.random.uniform(100, 300)
-    prices = [base_price]
-    
-    for i in range(1, days):
-        # Random walk with slight upward bias
-        change = np.random.normal(0.001, 0.02)  # 0.1% average daily growth, 2% volatility
-        new_price = prices[-1] * (1 + change)
-        prices.append(max(new_price, 10))  # Ensure price doesn't go below $10
-    
-    # Calculate other OHLC data
-    data = []
-    for i, (date, price) in enumerate(zip(dates, prices)):
-        daily_volatility = np.random.uniform(0.005, 0.03)
-        high = price * (1 + daily_volatility)
-        low = price * (1 - daily_volatility)
-        
-        # Ensure OHLC relationships are maintained
-        open_price = np.random.uniform(low, high)
-        close_price = price
-        
-        data.append({
-            'Date': date,
-            'Open': round(open_price, 2),
-            'High': round(high, 2),
-            'Low': round(low, 2),
-            'Close': round(close_price, 2),
-            'Volume': np.random.randint(1000000, 50000000)
-        })
-    
-    return pd.DataFrame(data)
-
-def create_market_overview_chart(df):
-    """Create market overview chart"""
-    # Sort by market cap for better visualization
-    df_sorted = df.sort_values('Market_Cap', ascending=True)
-    
-    fig = go.Figure()
-    
-    # Color based on price change
-    colors = ['#00D4AA' if change > 0 else '#FF6B6B' if change < 0 else '#4ECDC4' 
-              for change in df_sorted['Change_Pct']]
-    
-    fig.add_trace(go.Bar(
-        x=df_sorted['Symbol'],
-        y=df_sorted['Change_Pct'],
-        marker_color=colors,
-        text=[f"{pct:+.1f}%" for pct in df_sorted['Change_Pct']],
-        textposition='auto',
-        hovertemplate='<b>%{x}</b><br>' +
-                      'Change: %{y:.2f}%<br>' +
-                      '<extra></extra>'
-    ))
+    fig = go.Figure(data=[
+        go.Bar(
+            x=sentiment_counts.index,
+            y=sentiment_counts.values,
+            marker_color=['#00D4AA', '#FF6B6B', '#4ECDC4'],
+            text=sentiment_counts.values,
+            textposition='auto',
+        )
+    ])
     
     fig.update_layout(
-        title="Market Overview - Daily Performance",
-        xaxis_title="Stock Symbol",
-        yaxis_title="Change (%)",
-        template="plotly_dark",
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white'),
-        showlegend=False
-    )
-    
-    # Add zero line
-    fig.add_hline(y=0, line_dash="dash", line_color="white", opacity=0.5)
-    
-    return fig
-
-def create_price_chart(df_historical, symbol):
-    """Create candlestick price chart"""
-    fig = go.Figure(data=go.Candlestick(
-        x=df_historical['Date'],
-        open=df_historical['Open'],
-        high=df_historical['High'],
-        low=df_historical['Low'],
-        close=df_historical['Close'],
-        increasing_line_color='#00D4AA',
-        decreasing_line_color='#FF6B6B',
-        name=symbol
-    ))
-    
-    # Add moving averages
-    df_historical['MA20'] = df_historical['Close'].rolling(window=20).mean()
-    df_historical['MA50'] = df_historical['Close'].rolling(window=50).mean()
-    
-    fig.add_trace(go.Scatter(
-        x=df_historical['Date'],
-        y=df_historical['MA20'],
-        mode='lines',
-        name='MA20',
-        line=dict(color='#FFA726', width=2)
-    ))
-    
-    fig.add_trace(go.Scatter(
-        x=df_historical['Date'],
-        y=df_historical['MA50'],
-        mode='lines',
-        name='MA50',
-        line=dict(color='#42A5F5', width=2)
-    ))
-    
-    fig.update_layout(
-        title=f"{symbol} - Price Chart with Moving Averages",
-        xaxis_title="Date",
-        yaxis_title="Price ($)",
-        template="plotly_dark",
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white'),
-        xaxis_rangeslider_visible=False
-    )
-    
-    return fig
-
-def create_volume_chart(df_historical):
-    """Create volume chart"""
-    fig = go.Figure()
-    
-    fig.add_trace(go.Bar(
-        x=df_historical['Date'],
-        y=df_historical['Volume'],
-        marker_color='#4ECDC4',
-        opacity=0.7,
-        name='Volume'
-    ))
-    
-    fig.update_layout(
-        title="Trading Volume",
-        xaxis_title="Date",
-        yaxis_title="Volume",
+        title="News Sentiment Distribution",
+        xaxis_title="Sentiment",
+        yaxis_title="Number of Articles",
         template="plotly_dark",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
@@ -544,26 +628,24 @@ def create_volume_chart(df_historical):
     
     return fig
 
-def create_correlation_heatmap(df):
-    """Create correlation heatmap for selected metrics"""
-    # Select numeric columns for correlation
-    numeric_cols = ['Price', 'Change_Pct', 'Volume', 'Market_Cap', 'PE_Ratio']
-    correlation_matrix = df[numeric_cols].corr()
+def create_timeline_chart(df):
+    """Create sentiment timeline chart"""
+    df_timeline = df.groupby(['Date', 'Sentiment']).size().reset_index(name='Count')
     
-    fig = go.Figure(data=go.Heatmap(
-        z=correlation_matrix.values,
-        x=correlation_matrix.columns,
-        y=correlation_matrix.columns,
-        colorscale='RdBu',
-        zmid=0,
-        text=correlation_matrix.values,
-        texttemplate='%{text:.2f}',
-        textfont=dict(color='white'),
-        hoverongaps=False
-    ))
+    fig = px.line(
+        df_timeline, 
+        x='Date', 
+        y='Count', 
+        color='Sentiment',
+        title="Sentiment Timeline",
+        color_discrete_map={
+            'Positive': '#00D4AA',
+            'Negative': '#FF6B6B',
+            'Neutral': '#4ECDC4'
+        }
+    )
     
     fig.update_layout(
-        title="Market Metrics Correlation",
         template="plotly_dark",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
@@ -572,8 +654,37 @@ def create_correlation_heatmap(df):
     
     return fig
 
+def create_company_sentiment_chart(df):
+    """Create company-wise sentiment analysis"""
+    company_sentiment = df.groupby(['Company', 'Sentiment']).size().unstack(fill_value=0)
+    
+    fig = go.Figure()
+    
+    for sentiment in ['Positive', 'Negative', 'Neutral']:
+        if sentiment in company_sentiment.columns:
+            color = {'Positive': '#00D4AA', 'Negative': '#FF6B6B', 'Neutral': '#4ECDC4'}[sentiment]
+            fig.add_trace(go.Bar(
+                name=sentiment,
+                x=company_sentiment.index,
+                y=company_sentiment[sentiment],
+                marker_color=color
+            ))
+    
+    fig.update_layout(
+        title="Company-wise Sentiment Analysis",
+        xaxis_title="Company",
+        yaxis_title="Number of Articles",
+        template="plotly_dark",
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='white'),
+        barmode='stack'
+    )
+    
+    return fig
+
 def main():
-    """Main function for Market Data page"""
+    """Main function for Financial Analysis page"""
     load_custom_css()
     
     # Header - matching Start.py design
@@ -583,487 +694,723 @@ def main():
                 margin-bottom: 2rem; box-shadow: 0 6px 20px rgba(0,0,0,0.4); 
                 border: 1px solid #3a3a3a;">
         <h1 style="margin: 0; font-size: 3rem; font-weight: 700; color: #ffffff;">
-            📈 Market Data Analysis
+            📊 Financial News Analysis
         </h1>
         <h3 style="font-weight: 300; font-size: 1.5rem; color: #bdc3c7; margin: 1rem 0;">
-            Real-time Market Data Visualization and Technical Analysis
+            Advanced Financial News Sentiment Analysis with AI-powered Insights
         </h3>
     </div>
     """, unsafe_allow_html=True)
     
-    # Generate sample data
-    market_df = generate_market_data()
+    # Quick tips for new users
+    if not st.session_state.get('tips_dismissed', False):
+        tip_col1, tip_col2 = st.columns([4, 1])
+        
+        with tip_col1:
+            st.info("💡 **New here?** Start with 🔥 Popular button in sidebar, then select 🎯 Top Companies for instant analysis!")
+        
+        with tip_col2:
+            if st.button("✖️ Dismiss", key="dismiss_tips"):
+                st.session_state.tips_dismissed = True
+                st.rerun()
     
-    # Sidebar controls
-    st.sidebar.header("📊 Market Controls")
+    # Help section
+    with st.expander("ℹ️ How to Use This Page", expanded=False):
+        st.markdown("""
+        ### 🚀 Quick Start Guide
+        
+        **1. Choose Industry Categories:**
+        - Use the quick selection buttons (Popular, All Markets, Healthcare, Energy)
+        - Or manually select from the dropdown list
+        
+        **2. Select Companies:**
+        - **🎯 Top Companies:** Automatically selects top performers
+        - **⭐ Popular Picks:** Pre-selected famous companies  
+        - **🔍 Custom Selection:** Search and pick specific companies
+        
+        **3. Advanced Filtering:**
+        - Filter by news types (Earnings, Mergers, etc.)
+        - Choose sentiment (Positive, Negative, Neutral)
+        - Set impact score levels
+        
+        **4. Analysis Results:**
+        - View key metrics and trends
+        - Interactive charts and visualizations
+        - Detailed news sentiment analysis
+        
+        💡 **Tip:** Start with "Popular Picks" for a quick overview!
+        """)
     
-    # Global company search
-    st.sidebar.markdown("### 🔍 Company Search")
-    search_term = st.sidebar.text_input(
-        "Search companies",
-        placeholder="Type any company name (IBM, Apple, Tesla...)",
-        help="Search across all companies and symbols"
+    # Get company database
+    company_db = get_company_database()
+    
+    # Sidebar filters
+    st.sidebar.header("🔍 Analysis Filters")
+    
+    # Quick preset buttons with improved layout and functionality
+    st.sidebar.markdown("### 🚀 Quick Selection")
+    
+    # Create 2x2 button layout
+    col1, col2 = st.sidebar.columns(2)
+    
+    with col1:
+        if st.button("🔥 Popular", key="popular", use_container_width=True, 
+                    help="Technology & Finance sectors"):
+            # Clear any existing selections first
+            for key in list(st.session_state.keys()):
+                if key.startswith(('multi_', 'browse_')):
+                    del st.session_state[key]
+            st.session_state.selected_categories = ['Technology', 'Finance']
+            st.session_state.preset_applied = True
+            st.sidebar.success("✅ Popular sectors selected!")
+            st.rerun()
+    
+    with col2:
+        if st.button("📈 All Markets", key="all_markets", use_container_width=True,
+                    help="All industry sectors"):
+            # Clear any existing selections first
+            for key in list(st.session_state.keys()):
+                if key.startswith(('multi_', 'browse_')):
+                    del st.session_state[key]
+            st.session_state.selected_categories = list(company_db.keys())
+            st.session_state.preset_applied = True
+            st.sidebar.success("✅ All markets selected!")
+            st.rerun()
+    
+    col3, col4 = st.sidebar.columns(2)
+    
+    with col3:
+        if st.button("💊 Healthcare", key="healthcare", use_container_width=True,
+                    help="Healthcare & Pharmaceutical companies"):
+            # Clear any existing selections first
+            for key in list(st.session_state.keys()):
+                if key.startswith(('multi_', 'browse_')):
+                    del st.session_state[key]
+            st.session_state.selected_categories = ['Healthcare']
+            st.session_state.preset_applied = True
+            st.sidebar.success("✅ Healthcare selected!")
+            st.rerun()
+    
+    with col4:
+        if st.button("⚡ Energy", key="energy", use_container_width=True,
+                    help="Energy & Oil companies"):
+            # Clear any existing selections first
+            for key in list(st.session_state.keys()):
+                if key.startswith(('multi_', 'browse_')):
+                    del st.session_state[key]
+            st.session_state.selected_categories = ['Energy']
+            st.session_state.preset_applied = True
+            st.sidebar.success("✅ Energy selected!")
+            st.rerun()
+    
+    # Initialize session state
+    if 'selected_categories' not in st.session_state:
+        st.session_state.selected_categories = ['Technology', 'Finance', 'Healthcare']
+    
+    # Use session state for categories if preset was applied
+    default_categories = st.session_state.selected_categories if 'preset_applied' in st.session_state else ['Technology', 'Finance', 'Healthcare']
+    
+    selected_categories = st.sidebar.multiselect(
+        "🏢 Industries",
+        options=list(company_db.keys()),
+        default=default_categories,
+        help="Choose industry sectors for analysis"
     )
     
-    # Filter data by search
+    # Update session state
+    st.session_state.selected_categories = selected_categories
+    
+    # Clear preset flag
+    if 'preset_applied' in st.session_state:
+        del st.session_state.preset_applied
+    
+    # Get companies from selected categories
+    available_companies = []
+    for category in selected_categories:
+        available_companies.extend(company_db[category])
+    
+    # Generate initial sample data to get available companies
+    initial_df = generate_sample_news_data()
+    
+    # Date range filter
+    date_range = st.sidebar.date_input(
+        "📅 Date Range",
+        value=[datetime.now() - timedelta(days=30), datetime.now()],
+        max_value=datetime.now(),
+        help="Choose time period for news analysis"
+    )
+    
+    # Smart company selection
+    st.sidebar.markdown("### 🏭 Company Selection")
+    
+    # Global search box for all companies
+    search_term = st.sidebar.text_input(
+        "🔍 Quick Search",
+        placeholder="Type any company name (IBM, Apple, Tesla...)",
+        help="Search across all companies and categories"
+    )
+    
+    # Get all available companies from database
+    all_available_companies = []
+    for category in company_db.keys():
+        all_available_companies.extend(company_db[category])
+    
+    # Filter companies based on search
     if search_term:
-        search_mask = (
-            market_df['Company'].str.contains(search_term, case=False, na=False) |
-            market_df['Symbol'].str.contains(search_term, case=False, na=False)
-        )
-        search_results_df = market_df[search_mask]
-        st.sidebar.info(f"🎯 Found {len(search_results_df)} companies matching '{search_term}'")
+        filtered_companies = [comp for comp in all_available_companies 
+                            if search_term.lower() in comp.lower()]
+        st.sidebar.info(f"🎯 Found {len(filtered_companies)} companies matching '{search_term}'")
         
-        if not search_results_df.empty:
-            # Show specific company selection from search results
-            searched_companies = st.sidebar.multiselect(
+        # Show search results
+        if filtered_companies:
+            st.sidebar.markdown("**Search Results:**")
+            search_selected = st.sidebar.multiselect(
                 "Select from search results",
-                options=search_results_df['Company'].tolist(),
+                options=filtered_companies,
                 default=[],
-                help="Choose specific companies from search results"
+                help="Choose companies from search results"
             )
-            
-            if searched_companies:
-                filtered_market_df = market_df[market_df['Company'].isin(searched_companies)]
-            else:
-                filtered_market_df = search_results_df
         else:
             st.sidebar.warning("No companies found. Try different keywords.")
-            filtered_market_df = pd.DataFrame()  # Empty dataframe
+            search_selected = []
     else:
-        # Category filter when not searching
-        st.sidebar.markdown("### 🏢 Browse by Industry")
-        company_db = get_company_database()
-        categories = list(company_db.keys())
-        selected_categories = st.sidebar.multiselect(
-            "Industries",
-            options=categories,
-            default=categories[:3],
-            help="Select industry sectors to analyze"
+        search_selected = []
+    
+    # Category-based selection
+    st.sidebar.markdown("### 📂 Browse by Category")
+    
+    # Quick selection buttons with proper session state handling
+    st.sidebar.markdown("**🚀 Quick Picks:**")
+    
+    # Create 2x2 grid for better layout
+    col1, col2 = st.sidebar.columns(2)
+    
+    with col1:
+        if st.button("🔥 Tech Giants", key="tech_giants", use_container_width=True, 
+                    help="Apple, Microsoft, Google, Amazon, Meta, Tesla"):
+            # Clear existing selections
+            for key in list(st.session_state.keys()):
+                if key.startswith('multi_'):
+                    del st.session_state[key]
+            # Set new selection
+            st.session_state.quick_selection = ['Apple', 'Microsoft', 'Google', 'Amazon', 'Meta', 'Tesla']
+            st.rerun()
+    
+    with col2:
+        if st.button("🏦 Finance", key="finance_top", use_container_width=True,
+                    help="JPMorgan Chase, Bank of America, Wells Fargo, Goldman Sachs"):
+            # Clear existing selections
+            for key in list(st.session_state.keys()):
+                if key.startswith('multi_'):
+                    del st.session_state[key]
+            # Set new selection
+            st.session_state.quick_selection = ['JPMorgan Chase', 'Bank of America', 'Wells Fargo', 'Goldman Sachs']
+            st.rerun()
+    
+    col3, col4 = st.sidebar.columns(2)
+    
+    with col3:
+        if st.button("💊 Healthcare", key="healthcare_pick", use_container_width=True,
+                    help="Johnson & Johnson, Pfizer, Merck, Abbott"):
+            # Clear existing selections
+            for key in list(st.session_state.keys()):
+                if key.startswith('multi_'):
+                    del st.session_state[key]
+            # Set new selection
+            st.session_state.quick_selection = ['Johnson & Johnson', 'Pfizer', 'Merck', 'Abbott']
+            st.rerun()
+    
+    with col4:
+        if st.button("⚡ Energy", key="energy_pick", use_container_width=True,
+                    help="ExxonMobil, Chevron, ConocoPhillips"):
+            # Clear existing selections
+            for key in list(st.session_state.keys()):
+                if key.startswith('multi_'):
+                    del st.session_state[key]
+            # Set new selection
+            st.session_state.quick_selection = ['ExxonMobil', 'Chevron', 'ConocoPhillips']
+            st.rerun()
+    
+    # Check if we have a quick selection
+    if 'quick_selection' in st.session_state:
+        search_selected = st.session_state.quick_selection
+        # Clear the quick selection after use
+        del st.session_state.quick_selection
+    else:
+        search_selected = []
+    
+    # Category selection for detailed browsing (only if no search or quick selection)
+    if not search_term and not search_selected:
+        st.sidebar.markdown("**🗂️ Browse by Industry:**")
+        
+        browse_categories = st.sidebar.multiselect(
+            "Select industries to explore",
+            options=list(company_db.keys()),
+            default=['Technology'] if not selected_categories else selected_categories[:2],
+            help="Choose industry sectors to browse companies",
+            key="browse_industries"
         )
         
-        # Filter market data by selected categories
-        if selected_categories:
-            filtered_market_df = market_df[market_df['Category'].isin(selected_categories)]
+        # Show companies from selected categories in a more compact way
+        category_selected = []
+        if browse_categories:
+            for category in browse_categories:
+                category_companies = company_db[category]
+                
+                with st.sidebar.expander(f"📂 {category} ({len(category_companies)} companies)", expanded=False):
+                    # Add select all/none buttons for each category
+                    col_a, col_b = st.columns(2)
+                    with col_a:
+                        if st.button("✅ All", key=f"all_{category}", use_container_width=True,
+                                   help=f"Select all {category} companies"):
+                            st.session_state[f"multi_{category}"] = category_companies
+                            st.rerun()
+                    with col_b:
+                        if st.button("❌ None", key=f"none_{category}", use_container_width=True,
+                                   help=f"Deselect all {category} companies"):
+                            st.session_state[f"multi_{category}"] = []
+                            st.rerun()
+                    
+                    # Multiselect for companies in this category
+                    selected_from_category = st.multiselect(
+                        f"Companies in {category}:",
+                        options=category_companies,
+                        default=st.session_state.get(f"multi_{category}", []),
+                        key=f"multi_{category}",
+                        help=f"Choose specific companies from {category} sector"
+                    )
+                    category_selected.extend(selected_from_category)
+    else:
+        category_selected = []
+    
+    # Combine selections
+    selected_companies = list(set(search_selected + category_selected))
+    
+    # Show current selection
+    if selected_companies:
+        st.sidebar.success(f"✅ {len(selected_companies)} companies selected")
+        with st.sidebar.expander("📋 Selected Companies", expanded=False):
+            for i, comp in enumerate(selected_companies[:10], 1):
+                st.markdown(f"{i}. **{comp}**")
+            if len(selected_companies) > 10:
+                st.caption(f"... and {len(selected_companies) - 10} more")
+        
+        # Clear selection button with confirmation
+        if st.sidebar.button("🗑️ Clear All Selections", use_container_width=True, 
+                            type="secondary", help="Clear all selected companies"):
+            # Clear all related session state
+            keys_to_clear = [key for key in st.session_state.keys() 
+                           if key.startswith(('multi_', 'company_', 'browse_', 'quick_'))]
+            for key in keys_to_clear:
+                del st.session_state[key]
+            st.sidebar.success("✅ All selections cleared!")
+            st.rerun()
+    else:
+        st.sidebar.warning("⚠️ No companies selected")
+        st.sidebar.info("💡 Use search box or browse categories to select companies")
+    
+    # Generate targeted news data based on selected companies
+    # Use session state to ensure fresh data generation
+    if 'last_selected_companies' not in st.session_state:
+        st.session_state.last_selected_companies = []
+    
+    # Only regenerate if companies changed or no cache exists
+    if (selected_companies != st.session_state.last_selected_companies or 
+        'cached_df' not in st.session_state):
+        
+        # Clear old cache completely
+        if 'cached_df' in st.session_state:
+            del st.session_state.cached_df
+            
+        # Generate new data for selected companies ONLY
+        df = generate_sample_news_data(selected_companies)
+        st.session_state.last_selected_companies = selected_companies.copy() if selected_companies else []
+        st.session_state.cached_df = df
+        
+        # Clear any filter states that might be invalid now
+        if 'selected_news_types' in st.session_state:
+            del st.session_state.selected_news_types
+        if 'selected_sentiments' in st.session_state:
+            del st.session_state.selected_sentiments
+    else:
+        df = st.session_state.cached_df
+    
+    # Debug: Show what data was actually generated
+    if selected_companies:
+        st.sidebar.markdown("### 📊 Data Summary")
+        generated_companies = list(df['Company'].unique())
+        st.sidebar.markdown(f"**Data Generated for:** {len(generated_companies)} companies")
+        
+        # Show exact matching
+        st.sidebar.markdown("### ✅ Company Matching Check")
+        for selected in selected_companies:
+            if selected in generated_companies:
+                count = len(df[df['Company'] == selected])
+                st.sidebar.markdown(f"✅ **{selected}**: {count} news articles")
+            else:
+                st.sidebar.markdown(f"❌ **{selected}**: NO DATA FOUND!")
+        
+        # Show if any unexpected companies appeared
+        unexpected = [comp for comp in generated_companies if comp not in selected_companies]
+        if unexpected:
+            st.sidebar.markdown("### ⚠️ Unexpected Companies:")
+            for comp in unexpected[:3]:
+                count = len(df[df['Company'] == comp])
+                st.sidebar.markdown(f"❓ **{comp}**: {count} news")
         else:
-            filtered_market_df = market_df
+            st.sidebar.markdown("### ✅ Perfect Match!")
+            st.sidebar.markdown("All data is for selected companies only.")
     
-    # Market cap filter
-    with st.sidebar.expander("💰 Market Cap"):
-        min_cap, max_cap = st.slider(
-            "Range (Billions)",
-            min_value=0.0,
-            max_value=5000.0,
-            value=(0.0, 5000.0),
-            step=10.0
+    # Quick news headlines in sidebar
+    if selected_companies and not df.empty:
+        with st.sidebar.expander("📰 Latest Headlines", expanded=True):
+            latest_news = df.sort_values('Date', ascending=False).head(5)
+            for idx, row in latest_news.iterrows():
+                sentiment_emoji = "🟢" if row['Sentiment'] == 'Positive' else "🔴" if row['Sentiment'] == 'Negative' else "🟡"
+                st.markdown(f"""
+                <div style="
+                    background: #f8f9fa;
+                    padding: 8px;
+                    border-radius: 5px;
+                    margin: 5px 0;
+                    border-left: 3px solid {'#28a745' if row['Sentiment'] == 'Positive' else '#dc3545' if row['Sentiment'] == 'Negative' else '#ffc107'};
+                ">
+                    <small><strong>{row['Company']}</strong></small><br>
+                    <small>{sentiment_emoji} {row['Headline'][:60]}...</small><br>
+                    <small style="color: #666;">{row['Source']} • {row['Date']}</small>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Add link button for each headline
+                if st.button(f"📖 Read", key=f"sidebar_link_{idx}", help="Read full article"):
+                    st.markdown(f"**🔗 Article Link:** [{row['Source']}]({row['News_Link']})")
+    
+    # Advanced filters in expander
+    with st.sidebar.expander("🔧 Advanced", expanded=False):
+        st.markdown("### 📰 News Filters")
+        
+        # News type filter with better UX
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("📊 All News", key="all_news", use_container_width=True):
+                st.session_state.selected_news_types = list(df['News_Type'].unique())
+        
+        with col2:
+            if st.button("💼 Business Only", key="business_news", use_container_width=True):
+                st.session_state.selected_news_types = ['Earnings', 'Merger', 'Acquisition']
+        
+        # Initialize news types
+        if 'selected_news_types' not in st.session_state:
+            st.session_state.selected_news_types = list(df['News_Type'].unique())
+        
+        selected_news_types = st.multiselect(
+            "📝 News Types",
+            options=df['News_Type'].unique(),
+            default=st.session_state.selected_news_types,
+            help="Filter by type of financial news"
         )
-        filtered_market_df = filtered_market_df[
-            (filtered_market_df['Market_Cap'] >= min_cap) & 
-            (filtered_market_df['Market_Cap'] <= max_cap)
-        ]
-    
-    # Performance filter
-    with st.sidebar.expander("📊 Performance"):
-        min_change, max_change = st.slider(
-            "Change Range (%)",
-            min_value=-20.0,
-            max_value=20.0,
-            value=(-20.0, 20.0),
-            step=0.5
+        st.session_state.selected_news_types = selected_news_types
+        
+        st.markdown("### 😊 Sentiment Filters")
+        
+        # Sentiment filter with visual indicators
+        sentiment_options = {
+            "📈 Positive": "Positive",
+            "📉 Negative": "Negative", 
+            "😐 Neutral": "Neutral"
+        }
+        
+        selected_sentiment_keys = st.multiselect(
+            "Sentiment Types",
+            options=list(sentiment_options.keys()),
+            default=list(sentiment_options.keys()),
+            help="Filter by news sentiment"
         )
-        filtered_market_df = filtered_market_df[
-            (filtered_market_df['Change_Pct'] >= min_change) & 
-            (filtered_market_df['Change_Pct'] <= max_change)
-        ]
-    
-    # Data validation and user feedback
-    if filtered_market_df.empty:
-        st.error("🚫 No companies found with current filters!")
-        st.markdown("""
-        ### 💡 Suggestions:
-        - **Clear search** and try different keywords
-        - **Select more industries** for broader results
-        - **Expand filter ranges** (market cap, performance)
-        - **Reset all filters** using sidebar options
+        
+        selected_sentiments = [sentiment_options[key] for key in selected_sentiment_keys]
+        
+        st.markdown("### 🎯 Impact Score")
+        
+        # Impact score filter with better visualization
+        impact_range = st.select_slider(
+            "Impact Level",
+            options=[
+                "Very Negative (-1.0 to -0.6)",
+                "Negative (-0.6 to -0.2)", 
+                "Neutral (-0.2 to +0.2)",
+                "Positive (+0.2 to +0.6)",
+                "Very Positive (+0.6 to +1.0)",
+                "All Levels"
+            ],
+            value="All Levels",
+            help="Filter by news impact score"
+        )
+        
+        # Convert impact range to numeric values
+        if impact_range == "Very Negative (-1.0 to -0.6)":
+            min_impact, max_impact = -1.0, -0.6
+        elif impact_range == "Negative (-0.6 to -0.2)":
+            min_impact, max_impact = -0.6, -0.2
+        elif impact_range == "Neutral (-0.2 to +0.2)":
+            min_impact, max_impact = -0.2, 0.2
+        elif impact_range == "Positive (+0.2 to +0.6)":
+            min_impact, max_impact = 0.2, 0.6
+        elif impact_range == "Very Positive (+0.6 to +1.0)":
+            min_impact, max_impact = 0.6, 1.0
+        else:  # All Levels
+            min_impact, max_impact = -1.0, 1.0
+        
+        # Show current filter summary
+        st.markdown("---")
+        st.markdown("### 📋 Filter Summary")
+        st.info(f"""
+        **Companies:** {len(selected_companies) if selected_companies else 0}  
+        **News Types:** {len(selected_news_types)}  
+        **Sentiments:** {len(selected_sentiments)}  
+        **Impact:** {impact_range}
         """)
         
-        # Quick reset button
-        if st.button("🔄 Reset All Filters", type="primary", use_container_width=True):
+        # Reset filters button
+        if st.button("🔄 Reset All Filters", use_container_width=True):
+            # Clear all session state
+            keys_to_clear = [key for key in st.session_state.keys() 
+                           if key.startswith(('company_', 'selected_'))]
+            for key in keys_to_clear:
+                del st.session_state[key]
             st.rerun()
-        
-        return  # Exit early if no data
     
-    # Show data summary
-    st.sidebar.markdown("### 📈 Current Results")
-    st.sidebar.info(f"""
-    **Total Companies:** {len(filtered_market_df)}  
-    **Industries:** {len(filtered_market_df['Category'].unique())}  
-    **Price Range:** ${filtered_market_df['Price'].min():.2f} - ${filtered_market_df['Price'].max():.2f}
-    """)
+    # Filter data
+    df_filtered = df.copy()
     
-    # Quick stats in sidebar
-    avg_change = filtered_market_df['Change_Pct'].mean()
-    if avg_change > 0:
-        trend_emoji = "📈"
-        trend_color = "🟢"
-    else:
-        trend_emoji = "📉" 
-        trend_color = "🔴"
+    if selected_companies:
+        df_filtered = df_filtered[df_filtered['Company'].isin(selected_companies)]
     
-    st.sidebar.markdown(f"""
-    **Market Trend:** {trend_color} {trend_emoji}  
-    **Average Change:** {avg_change:.2f}%
-    """)
+    if selected_news_types:
+        df_filtered = df_filtered[df_filtered['News_Type'].isin(selected_news_types)]
     
-    # Stock selector for detailed analysis
-    available_stocks = filtered_market_df['Symbol'].tolist()
-    if available_stocks:
-        selected_stock = st.sidebar.selectbox(
-            "📈 Stock Analysis",
-            options=available_stocks,
-            index=0
-        )
-    else:
-        st.sidebar.error("No stocks match the selected criteria")
-        selected_stock = market_df['Symbol'].iloc[0]
+    if selected_sentiments:
+        df_filtered = df_filtered[df_filtered['Sentiment'].isin(selected_sentiments)]
     
-    # Time period selector
-    time_period = st.sidebar.selectbox(
-        "📊 Time Period",
-        options=["1 Month", "3 Months", "6 Months", "1 Year"],
-        index=3
-    )
+    # Filter by impact score
+    df_filtered = df_filtered[
+        (df_filtered['Sentiment_Score'] >= min_impact) & 
+        (df_filtered['Sentiment_Score'] <= max_impact)
+    ]
     
-    # Convert time period to days
-    period_days = {"1 Month": 30, "3 Months": 90, "6 Months": 180, "1 Year": 365}
-    days = period_days[time_period]
+    # Check if any data remains after filtering
+    if df_filtered.empty:
+        st.warning("⚠️ No data found with current filters!")
+        st.markdown("""
+        ### 💡 Suggestions:
+        - Try selecting more **industry categories**
+        - Choose **"All Markets"** for broader analysis  
+        - Use **"Top Companies"** selection mode
+        - Expand the **date range**
+        - Reset filters using the **🔄 Reset All Filters** button
+        """)
+        return
     
-    # Generate historical data for selected stock
-    historical_df = generate_historical_data(selected_stock, days)
+    if not selected_companies:
+        st.info("👆 Please select companies from the sidebar to start analysis")
+        st.markdown("""
+        ### 🚀 Quick Start:
+        1. Click **🔥 Popular** for most traded companies
+        2. Or click **📈 All Markets** for comprehensive view
+        3. Or choose **🎯 Top Companies** for auto-selection
+        """)
+        return
     
-    # Market overview metrics
-    st.subheader("🌍 Market Overview")
+    # Show which companies actually have data
+    companies_with_data = list(df_filtered['Company'].unique())
+    selected_companies_with_data = [comp for comp in selected_companies if comp in companies_with_data]
     
+    if not selected_companies_with_data:
+        st.error("❌ None of the selected companies have data in the current filters!")
+        st.markdown(f"""
+        **Selected Companies:** {', '.join(selected_companies)}  
+        **Companies with Data:** {', '.join(companies_with_data[:10])}
+        """)
+        return
+    
+    # Display analysis summary
+    st.success(f"✅ Analyzing {len(selected_companies_with_data)} companies: {', '.join(selected_companies_with_data[:5])}" + 
+               (f" and {len(selected_companies_with_data)-5} more" if len(selected_companies_with_data) > 5 else ""))
+    
+    # Key metrics
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        gainers = len(filtered_market_df[filtered_market_df['Change_Pct'] > 0])
-        st.markdown(f"""
-        <div class="metric-card price-up">
-            <h3>📈 Gainers</h3>
-            <h2>{gainers}</h2>
-            <p>Stocks up today</p>
+        st.markdown("""
+        <div class="metric-card sentiment-positive">
+            <h3>📈 Positive News</h3>
+            <h2>{}</h2>
+            <p>Articles with positive sentiment</p>
         </div>
-        """, unsafe_allow_html=True)
+        """.format(len(df_filtered[df_filtered['Sentiment'] == 'Positive'])), unsafe_allow_html=True)
     
     with col2:
-        losers = len(filtered_market_df[filtered_market_df['Change_Pct'] < 0])
-        st.markdown(f"""
-        <div class="metric-card price-down">
-            <h3>📉 Losers</h3>
-            <h2>{losers}</h2>
-            <p>Stocks down today</p>
+        st.markdown("""
+        <div class="metric-card sentiment-negative">
+            <h3>📉 Negative News</h3>
+            <h2>{}</h2>
+            <p>Articles with negative sentiment</p>
         </div>
-        """, unsafe_allow_html=True)
+        """.format(len(df_filtered[df_filtered['Sentiment'] == 'Negative'])), unsafe_allow_html=True)
     
     with col3:
-        avg_change = round(filtered_market_df['Change_Pct'].mean(), 2)
-        status_class = "price-up" if avg_change > 0 else "price-down" if avg_change < 0 else "price-stable"
-        st.markdown(f"""
-        <div class="metric-card {status_class}">
-            <h3>📊 Avg Change</h3>
-            <h2>{avg_change}%</h2>
-            <p>Market average</p>
+        st.markdown("""
+        <div class="metric-card sentiment-neutral">
+            <h3>⚖️ Neutral News</h3>
+            <h2>{}</h2>
+            <p>Articles with neutral sentiment</p>
         </div>
-        """, unsafe_allow_html=True)
+        """.format(len(df_filtered[df_filtered['Sentiment'] == 'Neutral'])), unsafe_allow_html=True)
     
     with col4:
-        total_volume = filtered_market_df['Volume'].sum() / 1_000_000  # Convert to millions
-        st.markdown(f"""
-        <div class="metric-card price-stable">
-            <h3>📊 Total Volume</h3>
-            <h2>{total_volume:.0f}M</h2>
-            <p>Shares traded</p>
+        avg_sentiment = df_filtered['Sentiment_Score'].mean()
+        st.markdown("""
+        <div class="metric-card">
+            <h3>🎯 Avg Sentiment</h3>
+            <h2>{:.2f}</h2>
+            <p>Overall sentiment score</p>
         </div>
-        """, unsafe_allow_html=True)
+        """.format(avg_sentiment), unsafe_allow_html=True)
     
-    # Market overview chart
+    # Charts
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+        st.plotly_chart(create_sentiment_chart(df_filtered), use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+        st.plotly_chart(create_timeline_chart(df_filtered), use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Company analysis
     st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-    st.plotly_chart(create_market_overview_chart(filtered_market_df), use_container_width=True)
+    st.plotly_chart(create_company_sentiment_chart(df_filtered), use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Stock analysis section
-    st.subheader(f"🔍 {selected_stock} Analysis")
+    # Recent news table
+    st.subheader("📰 Recent News Analysis")
     
-    # Stock metrics
-    stock_data = market_df[market_df['Symbol'] == selected_stock].iloc[0]
-    
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        change_class = "price-up" if stock_data['Change'] > 0 else "price-down"
-        st.markdown(f"""
-        <div class="metric-card {change_class}">
-            <h4>Current Price</h4>
-            <h3>${stock_data['Price']}</h3>
-            <p class="{'price-change-positive' if stock_data['Change'] > 0 else 'price-change-negative'}">
-                {stock_data['Change']:+.2f} ({stock_data['Change_Pct']:+.2f}%)
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <h4>Market Cap</h4>
-            <h3>${stock_data['Market_Cap']}B</h3>
-            <p>Total value</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <h4>P/E Ratio</h4>
-            <h3>{stock_data['PE_Ratio']}</h3>
-            <p>Price to earnings</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col4:
-        st.markdown(f"""
-        <div class="metric-card">
-            <h4>Day High</h4>
-            <h3>${stock_data['Day_High']}</h3>
-            <p>Today's high</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col5:
-        st.markdown(f"""
-        <div class="metric-card">
-            <h4>Day Low</h4>
-            <h3>${stock_data['Day_Low']}</h3>
-            <p>Today's low</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # Price and volume charts
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-        st.plotly_chart(create_price_chart(historical_df, selected_stock), use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-        st.plotly_chart(create_volume_chart(historical_df), use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Market analysis
-    st.subheader("📊 Market Analysis")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-        st.plotly_chart(create_correlation_heatmap(market_df), use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col2:
-        # Top performers table
-        st.markdown("### 🏆 Top Performers")
-        top_performers = filtered_market_df.nlargest(5, 'Change_Pct')[['Symbol', 'Company', 'Category', 'Change_Pct', 'Price']]
-        st.dataframe(top_performers, use_container_width=True)
+    # Display filtered data with links
+    if not df_filtered.empty:
+        df_display = df_filtered.sort_values('Date', ascending=False).head(15)
         
-        st.markdown("### 📉 Worst Performers")
-        worst_performers = filtered_market_df.nsmallest(5, 'Change_Pct')[['Symbol', 'Company', 'Category', 'Change_Pct', 'Price']]
-        st.dataframe(worst_performers, use_container_width=True)
+        # Show news articles with headlines and links
+        st.markdown("### 📋 Latest Financial News")
+        
+        for idx, row in df_display.iterrows():
+            # Color coding for sentiment
+            if row['Sentiment'] == 'Positive':
+                sentiment_color = "🟢"
+            elif row['Sentiment'] == 'Negative':
+                sentiment_color = "🔴"
+            else:
+                sentiment_color = "🟡"
+            
+            # Create news card
+            with st.container():
+                col1, col2 = st.columns([4, 1])
+                
+                with col1:
+                    st.markdown(f"""
+                    <div style="
+                        background: var(--secondary-bg, #f8f9fa);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin: 10px 0;
+                        border-left: 4px solid {'#28a745' if row['Sentiment'] == 'Positive' else '#dc3545' if row['Sentiment'] == 'Negative' else '#ffc107'};
+                    ">
+                        <h4 style="margin: 0 0 8px 0; color: #333;">
+                            📰 {row['Headline']}
+                        </h4>
+                        <p style="margin: 5px 0; color: #666;">
+                            <strong>{row['Company']}</strong> • {row['Date']} • {row['Source']} • {row['News_Type']}
+                        </p>
+                        <p style="margin: 8px 0 0 0;">
+                            {sentiment_color} <strong>{row['Sentiment']}</strong> 
+                            (Score: {row['Sentiment_Score']:.2f}) • 
+                            Impact: {row['Impact_Score']:.2f}
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with col2:
+                    # Link button
+                    if st.button(f"🔗 Read Full Article", key=f"link_{idx}", 
+                               help=f"Read full article from {row['Source']}"):
+                        st.markdown(f"**Source Link:** [{row['Source']}]({row['News_Link']})")
+                        st.info(f"Click the link above to read the full article from {row['Source']}")
+        
+        # Traditional table view toggle
+        with st.expander("📊 View as Data Table", expanded=False):
+            st.dataframe(
+                df_display[['Date', 'Company', 'Headline', 'News_Type', 'Sentiment', 'Sentiment_Score', 'Source', 'News_Link']],
+                use_container_width=True,
+                column_config={
+                    "News_Link": st.column_config.LinkColumn(
+                        "Article Link",
+                        help="Click to read full article",
+                        validate="^https://.*",
+                        max_chars=100,
+                        display_text="🔗 Read Article"
+                    ),
+                    "Headline": st.column_config.TextColumn(
+                        "News Headline",
+                        width="large",
+                        help="News article headline"
+                    )
+                }
+            )
+    else:
+        st.warning("No data available for the selected filters.")
     
-    # Market data table with category info
-    st.subheader("📋 Complete Market Data")
+    # Analysis insights
+    st.subheader("💡 Key Insights")
     
-    # Show filtered data summary
-    st.info(f"Showing {len(filtered_market_df)} stocks from {len(selected_categories)} categories")
+    insights_col1, insights_col2 = st.columns(2)
     
-    # Display comprehensive market data
-    display_columns = ['Symbol', 'Company', 'Category', 'Price', 'Change', 'Change_Pct', 
-                      'Day_High', 'Day_Low', 'Volume', 'Market_Cap', 'PE_Ratio', 'Dividend_Yield']
-    st.dataframe(
-        filtered_market_df[display_columns].sort_values('Market_Cap', ascending=False),
-        use_container_width=True,
-        height=400
-    )
-    
-    # Add refresh button
-    if st.button("🔄 Refresh Data"):
-        st.rerun()
-    
-    # Broker Links Section
-    st.markdown("---")
-    st.markdown("## 🏦 Trusted Brokers & Trading Platforms")
-    
-    # Global Brokers
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("### 🌍 Global Brokers")
+    with insights_col1:
         st.markdown("""
-        <div style="
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            border-radius: 15px;
-            margin: 10px 0;
-            animation: slideInLeft 0.8s ease-out;
-        ">
-            <h4 style="color: white; margin: 0 0 15px 0;">🇺🇸 United States</h4>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.interactivebrokers.com" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    📊 Interactive Brokers
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">Low-cost global trading platform</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.fidelity.com" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    🏛️ Fidelity Investments
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">No commission stock trading</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.schwab.com" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    🎯 Charles Schwab
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">Full-service investment platform</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.tdameritrade.com" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    📈 TD Ameritrade
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">Advanced trading tools</p>
-            </div>
+        <div class="metric-card">
+            <h4>🔍 Sentiment Analysis Summary</h4>
+            <ul>
+                <li>Most covered company: <strong>{}</strong></li>
+                <li>Dominant sentiment: <strong>{}</strong></li>
+                <li>Average sentiment score: <strong>{:.2f}</strong></li>
+                <li>Total articles analyzed: <strong>{}</strong></li>
+            </ul>
         </div>
-        
-        <div style="
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            padding: 20px;
-            border-radius: 15px;
-            margin: 10px 0;
-            animation: slideInLeft 1s ease-out;
-        ">
-            <h4 style="color: white; margin: 0 0 15px 0;">🇪🇺 Europe</h4>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.degiro.com" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    🚀 DEGIRO
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">Low-cost European broker</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.etoro.com" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    👥 eToro
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">Social trading platform</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.trading212.com" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    📱 Trading 212
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">Commission-free trading</p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        """.format(
+            df_filtered['Company'].value_counts().index[0] if not df_filtered.empty else "N/A",
+            df_filtered['Sentiment'].value_counts().index[0] if not df_filtered.empty else "N/A",
+            df_filtered['Sentiment_Score'].mean() if not df_filtered.empty else 0,
+            len(df_filtered)
+        ), unsafe_allow_html=True)
     
-    with col2:
-        st.markdown("### 🇹🇷 Turkish Brokers")
+    with insights_col2:
         st.markdown("""
-        <div style="
-            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
-            padding: 20px;
-            border-radius: 15px;
-            margin: 10px 0;
-            animation: slideInRight 0.8s ease-out;
-        ">
-            <h4 style="color: white; margin: 0 0 15px 0;">🏦 Türkiye Brokerleri</h4>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.isyatirim.com.tr" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    🏛️ İş Yatırım
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">Türkiye'nin lider yatırım bankası</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.yapikredi.com.tr/yatirim-hizmetleri" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    🏦 Yapı Kredi Yatırım
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">Kapsamlı yatırım çözümleri</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.garanti.com.tr/tr/bireysel/yatirim" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    💳 Garanti BBVA Yatırım
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">Dijital yatırım platformu</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.qnbfinansyatirim.com" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    🌟 QNB Finans Yatırım
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">Profesyonel yatırım danışmanlığı</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.akbankyatirim.com.tr" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    🏦 Akbank Yatırım
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">Güvenilir yatırım partneri</p>
-            </div>
+        <div class="metric-card">
+            <h4>📊 Market Impact Analysis</h4>
+            <ul>
+                <li>High impact news: <strong>{}%</strong></li>
+                <li>Most active news type: <strong>{}</strong></li>
+                <li>Top news source: <strong>{}</strong></li>
+                <li>Sentiment volatility: <strong>{}</strong></li>
+            </ul>
         </div>
-        
-        <div style="
-            background: linear-gradient(135deg, #2ECC71 0%, #27AE60 100%);
-            padding: 20px;
-            border-radius: 15px;
-            margin: 10px 0;
-            animation: slideInRight 1s ease-out;
-        ">
-            <h4 style="color: white; margin: 0 0 15px 0;">📱 Digital Platforms</h4>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.gedik.com.tr" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    🚀 Gedik Yatırım
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">Teknoloji odaklı broker</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.odeabank.com.tr/tr-tr/bireysel/yatirim" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    💎 Odea Bank Yatırım
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">Yenilikçi bankacılık</p>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <a href="https://www.matriks.com.tr" target="_blank" style="color: #00D4AA; text-decoration: none; font-weight: 600;">
-                    📊 Matriks Bilgi Dağıtım
-                </a>
-                <p style="color: #ddd; margin: 5px 0; font-size: 0.9rem;">Gelişmiş analiz araçları</p>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # Warning and disclaimer
-    st.markdown("---")
-    st.markdown("""
-    <div style="
-        background: linear-gradient(135deg, #FFA726 0%, #FFB74D 100%);
-        padding: 15px;
-        border-radius: 10px;
-        margin: 20px 0;
-        text-align: center;
-        animation: pulse 3s infinite;
-    ">
-        <h4 style="color: white; margin: 0 0 10px 0;">⚠️ Investment Disclaimer</h4>
-        <p style="color: white; margin: 0; font-size: 0.9rem;">
-            <strong>Risk Warning:</strong> Trading stocks and financial instruments involves significant risk. 
-            Past performance does not guarantee future results. Please conduct thorough research and consider 
-            seeking advice from qualified financial advisors before making investment decisions.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+        """.format(
+            int((df_filtered['Impact_Score'] > 0.7).sum() / len(df_filtered) * 100) if not df_filtered.empty else 0,
+            df_filtered['News_Type'].value_counts().index[0] if not df_filtered.empty else "N/A",
+            df_filtered['Source'].value_counts().index[0] if not df_filtered.empty else "N/A",
+            "High" if df_filtered['Sentiment_Score'].std() > 0.5 else "Moderate" if not df_filtered.empty else "N/A"
+        ), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
