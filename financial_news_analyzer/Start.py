@@ -373,6 +373,8 @@ class FinancialAnalyzerApp:
                 min-width: 350px !important;
                 max-width: 350px !important;
                 transition: all 0.3s ease !important;
+                position: relative !important;
+                z-index: 999 !important;
             }
             
             section[data-testid="stSidebar"] > div {
@@ -384,11 +386,14 @@ class FinancialAnalyzerApp:
                 transition: all 0.3s ease !important;
             }
             
-            /* Collapsed sidebar */
+            /* Force collapsed sidebar to completely hide */
             section[data-testid="stSidebar"][data-collapsed="true"] {
                 width: 0px !important;
                 min-width: 0px !important;
                 max-width: 0px !important;
+                margin-left: -350px !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
             }
             
             section[data-testid="stSidebar"][data-collapsed="true"] > div {
@@ -396,6 +401,38 @@ class FinancialAnalyzerApp:
                 min-width: 0px !important;
                 max-width: 0px !important;
                 overflow: hidden !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+            }
+            
+            /* Sidebar toggle button styling */
+            button[kind="header"] {
+                position: fixed !important;
+                top: 1rem !important;
+                left: 1rem !important;
+                z-index: 1000 !important;
+                background: rgba(44, 62, 80, 0.9) !important;
+                border-radius: 8px !important;
+                border: 1px solid #3a3a3a !important;
+                padding: 0.5rem !important;
+            }
+            
+            button[kind="header"]:hover {
+                background: rgba(52, 73, 94, 0.9) !important;
+                transform: scale(1.05) !important;
+            }
+            
+            /* Main content area adjustments */
+            .main .block-container {
+                transition: all 0.3s ease !important;
+                padding-left: 2rem !important;
+            }
+            
+            /* When sidebar is collapsed, expand main content */
+            section[data-testid="stSidebar"][data-collapsed="true"] ~ .main .block-container {
+                margin-left: 0px !important;
+                max-width: calc(100vw - 2rem) !important;
+                padding-left: 2rem !important;
             }
             
             /* Mobile responsive adjustments */
@@ -412,10 +449,19 @@ class FinancialAnalyzerApp:
                     max-width: 280px !important;
                 }
                 
+                section[data-testid="stSidebar"][data-collapsed="true"] {
+                    margin-left: -280px !important;
+                }
+                
                 /* Main content adjustments for mobile */
                 .main .block-container {
                     padding-left: 1rem !important;
                     padding-right: 1rem !important;
+                }
+                
+                section[data-testid="stSidebar"][data-collapsed="true"] ~ .main .block-container {
+                    margin-left: 0px !important;
+                    max-width: calc(100vw - 2rem) !important;
                 }
             }
             
