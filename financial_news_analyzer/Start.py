@@ -4,7 +4,7 @@ Modern financial analysis platform for market         st.set_page_config(
             page_title="🏦 Financial News Analyzer",
             page_icon="🏦",
             layout="wide",
-            initial_sidebar_state="auto"
+            initial_sidebar_state="collapsed"
         )igence
 
 This application provides:
@@ -367,11 +367,12 @@ class FinancialAnalyzerApp:
                 background: linear-gradient(135deg, #3c5a78 0%, #34495e 100%);
             }
             
-            /* Dark sidebar with fixed width */
+            /* Dark sidebar with responsive width */
             section[data-testid="stSidebar"] {
                 width: 350px !important;
                 min-width: 350px !important;
                 max-width: 350px !important;
+                transition: all 0.3s ease !important;
             }
             
             section[data-testid="stSidebar"] > div {
@@ -380,44 +381,41 @@ class FinancialAnalyzerApp:
                 max-width: 350px !important;
                 background: linear-gradient(180deg, #1a1a1a 0%, #2c3e50 100%);
                 color: #ffffff;
+                transition: all 0.3s ease !important;
             }
             
-            /* Mobile responsive sidebar */
+            /* Collapsed sidebar */
+            section[data-testid="stSidebar"][data-collapsed="true"] {
+                width: 0px !important;
+                min-width: 0px !important;
+                max-width: 0px !important;
+            }
+            
+            section[data-testid="stSidebar"][data-collapsed="true"] > div {
+                width: 0px !important;
+                min-width: 0px !important;
+                max-width: 0px !important;
+                overflow: hidden !important;
+            }
+            
+            /* Mobile responsive adjustments */
             @media screen and (max-width: 768px) {
                 section[data-testid="stSidebar"] {
-                    width: 0px !important;
-                    min-width: 0px !important;
-                    max-width: 0px !important;
-                    transform: translateX(-100%) !important;
-                    transition: all 0.3s ease !important;
+                    width: 280px !important;
+                    min-width: 280px !important;
+                    max-width: 280px !important;
                 }
                 
                 section[data-testid="stSidebar"] > div {
-                    width: 0px !important;
-                    min-width: 0px !important;
-                    max-width: 0px !important;
-                    overflow: hidden !important;
-                    opacity: 0 !important;
-                }
-                
-                section[data-testid="stSidebar"][data-collapsed="false"] {
                     width: 280px !important;
                     min-width: 280px !important;
                     max-width: 280px !important;
-                    transform: translateX(0) !important;
                 }
                 
-                section[data-testid="stSidebar"][data-collapsed="false"] > div {
-                    width: 280px !important;
-                    min-width: 280px !important;
-                    max-width: 280px !important;
-                    opacity: 1 !important;
-                }
-                
-                /* Main content full width on mobile when sidebar closed */
+                /* Main content adjustments for mobile */
                 .main .block-container {
                     padding-left: 1rem !important;
-                    max-width: 100% !important;
+                    padding-right: 1rem !important;
                 }
             }
             
