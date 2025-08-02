@@ -15,7 +15,7 @@ st.set_page_config(
     page_title="📊 Financial Analysis",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 def load_custom_css():
@@ -36,10 +36,30 @@ def load_custom_css():
         --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
     }
     
-    /* Hide Streamlit branding */
-    #MainMenu {visibility: hidden;}
+    /* Hide some Streamlit default elements but keep hamburger menu */
     footer {visibility: hidden;}
-    header {visibility: hidden;}
+    
+    /* Force hamburger button to be visible with smooth animation */
+    button[title="View fullscreen"] {
+        visibility: hidden;
+    }
+    
+    /* Enhanced hamburger menu animation */
+    button[data-testid="collapsedControl"] {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        border-radius: 8px !important;
+    }
+    
+    button[data-testid="collapsedControl"]:hover {
+        transform: scale(1.1) rotate(5deg) !important;
+        background-color: rgba(0, 212, 170, 0.1) !important;
+        box-shadow: 0 4px 12px rgba(0, 212, 170, 0.3) !important;
+    }
+    
+    button[data-testid="collapsedControl"]:active {
+        transform: scale(0.95) !important;
+        transition: all 0.1s ease-in-out !important;
+    }
     
     /* Modern animations */
     @keyframes fadeInUp {
@@ -152,13 +172,7 @@ def load_custom_css():
     .status-warning { background-color: #FFA726; }
     .status-error { background-color: #FF6B6B; }
     
-    @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.5; }
-        100% { opacity: 1; }
-    }
-    
-    /* Custom buttons */
+    /* Custom buttons with enhanced smooth transitions */
     .stButton > button {
         background: var(--gradient-1);
         color: white;
@@ -166,14 +180,19 @@ def load_custom_css():
         border-radius: 8px;
         padding: 12px 30px;
         font-weight: 600;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
     
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 25px rgba(0, 212, 170, 0.3);
         background: var(--tertiary-bg);
+    }
+    
+    .stButton > button:active {
+        transform: translateY(-1px) scale(1.01);
+        transition: all 0.1s ease-in-out;
     }
     
     /* Quick selection buttons */
@@ -239,78 +258,86 @@ def load_custom_css():
         box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
     }
     
-    /* Sidebar - Simple and Working Solution */
-    section[data-testid="stSidebar"] {
-        width: 350px !important;
-        min-width: 350px !important;
-        transition: all 0.3s ease !important;
-    }
-    
+    /* Sidebar - only background styling, allow native Streamlit behavior with smooth transitions */
     section[data-testid="stSidebar"] > div {
-        width: 350px !important;
-        min-width: 350px !important;
         background: linear-gradient(180deg, var(--primary-bg) 0%, var(--secondary-bg) 100%) !important;
         color: var(--text-primary) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     
-    /* When collapsed - fully hide sidebar on collapse */
-    section[data-testid="stSidebar"][data-collapsed="true"],
-    section[data-testid="stSidebar"][aria-expanded="false"] {
-        width: 0px !important;
-        min-width: 0px !important;
-        overflow: hidden !important;
+    /* Enhanced sidebar animations */
+    section[data-testid="stSidebar"] {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     
-    section[data-testid="stSidebar"][data-collapsed="true"] > div,
-    section[data-testid="stSidebar"][aria-expanded="false"] > div {
-        width: 0px !important;
-        min-width: 0px !important;
-        overflow: hidden !important;
+    /* Smooth animations for sidebar elements */
+    section[data-testid="stSidebar"] * {
+        transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out !important;
     }
     
-    /* Mobile responsive */
-    @media screen and (max-width: 768px) {
-        section[data-testid="stSidebar"] {
-            width: 300px !important;
-            min-width: 300px !important;
+    /* Enhanced hover effects for sidebar elements */
+    section[data-testid="stSidebar"] .stSelectbox:hover,
+    section[data-testid="stSidebar"] .stMultiSelect:hover,
+    section[data-testid="stSidebar"] .stButton:hover {
+        transform: translateX(2px);
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    /* Smooth scroll for sidebar */
+    section[data-testid="stSidebar"] {
+        scroll-behavior: smooth !important;
+    }
+    
+    /* Fade in animation for sidebar content */
+    section[data-testid="stSidebar"] .element-container {
+        animation: fadeInLeft 0.5s ease-out !important;
+    }
+    
+    @keyframes fadeInLeft {
+        from { 
+            opacity: 0; 
+            transform: translateX(-20px); 
         }
-        
-        section[data-testid="stSidebar"] > div {
-            width: 300px !important;
-            min-width: 300px !important;
-        }
-        
-        section[data-testid="stSidebar"][data-collapsed="true"] {
-            width: 0px !important;
-            min-width: 0px !important;
-        }
-        
-        section[data-testid="stSidebar"][data-collapsed="true"] > div {
-            width: 0px !important;
-            min-width: 0px !important;
+        to { 
+            opacity: 1; 
+            transform: translateX(0); 
         }
     }
     
-    /* Sidebar text handling */
+    /* Sidebar text handling with smooth animations */
     .sidebar-content {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         font-size: 0.85rem;
         line-height: 1.2;
+        transition: all 0.2s ease-in-out;
     }
     
-    /* Multiselect and selectbox styling */
+    .sidebar-content:hover {
+        opacity: 0.8;
+        transform: scale(1.02);
+    }
+    
+    /* Multiselect and selectbox styling with smooth transitions */
     .stSelectbox label, .stMultiSelect label {
         font-size: 0.9rem !important;
         font-weight: 600 !important;
         color: var(--text-primary) !important;
         white-space: nowrap !important;
+        transition: color 0.2s ease-in-out !important;
     }
     
     .stSelectbox > div > div, .stMultiSelect > div > div {
         min-width: 300px !important;
         font-size: 0.85rem !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        border-radius: 8px !important;
+    }
+    
+    .stSelectbox > div > div:hover, .stMultiSelect > div > div:hover {
+        box-shadow: 0 4px 12px rgba(0, 212, 170, 0.2) !important;
+        transform: translateY(-1px) !important;
     }
     
     /* Chart containers with animations */
