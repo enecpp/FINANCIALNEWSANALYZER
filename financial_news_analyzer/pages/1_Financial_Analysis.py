@@ -253,15 +253,18 @@ def load_custom_css():
         color: var(--text-primary) !important;
     }
     
-    /* When collapsed - just hide content, keep toggle working */
-    section[data-testid="stSidebar"][data-collapsed="true"] {
-        width: 60px !important;
-        min-width: 60px !important;
+    /* When collapsed - fully hide sidebar on collapse */
+    section[data-testid="stSidebar"][data-collapsed="true"],
+    section[data-testid="stSidebar"][aria-expanded="false"] {
+        width: 0px !important;
+        min-width: 0px !important;
+        overflow: hidden !important;
     }
     
-    section[data-testid="stSidebar"][data-collapsed="true"] > div {
-        width: 60px !important;
-        min-width: 60px !important;
+    section[data-testid="stSidebar"][data-collapsed="true"] > div,
+    section[data-testid="stSidebar"][aria-expanded="false"] > div {
+        width: 0px !important;
+        min-width: 0px !important;
         overflow: hidden !important;
     }
     
