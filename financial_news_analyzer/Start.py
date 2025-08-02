@@ -4,7 +4,7 @@ Modern financial analysis platform for market         st.set_page_config(
             page_title="🏦 Financial News Analyzer",
             page_icon="🏦",
             layout="wide",
-            initial_sidebar_state="collapsed"
+            initial_sidebar_state="expanded"
         )igence
 
 This application provides:
@@ -367,101 +367,132 @@ class FinancialAnalyzerApp:
                 background: linear-gradient(135deg, #3c5a78 0%, #34495e 100%);
             }
             
-            /* Dark sidebar with responsive width */
+            /* Sidebar styling - Professional approach */
             section[data-testid="stSidebar"] {
                 width: 350px !important;
                 min-width: 350px !important;
                 max-width: 350px !important;
-                transition: all 0.3s ease !important;
+                transition: width 0.3s ease, margin-left 0.3s ease !important;
                 position: relative !important;
-                z-index: 999 !important;
+                overflow: visible !important;
             }
             
             section[data-testid="stSidebar"] > div {
                 width: 350px !important;
                 min-width: 350px !important;
                 max-width: 350px !important;
-                background: linear-gradient(180deg, #1a1a1a 0%, #2c3e50 100%);
-                color: #ffffff;
-                transition: all 0.3s ease !important;
+                background: linear-gradient(180deg, #1a1a1a 0%, #2c3e50 100%) !important;
+                color: #ffffff !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
             }
             
-            /* Force collapsed sidebar to completely hide */
-            section[data-testid="stSidebar"][data-collapsed="true"] {
+            /* Collapsed state - Complete hiding */
+            section[data-testid="stSidebar"].st-emotion-cache-1d391kg {
                 width: 0px !important;
                 min-width: 0px !important;
                 max-width: 0px !important;
-                margin-left: -350px !important;
-                visibility: hidden !important;
-                opacity: 0 !important;
+                margin-left: 0px !important;
+                overflow: hidden !important;
             }
             
-            section[data-testid="stSidebar"][data-collapsed="true"] > div {
+            section[data-testid="stSidebar"].st-emotion-cache-1d391kg > div {
                 width: 0px !important;
                 min-width: 0px !important;
                 max-width: 0px !important;
                 overflow: hidden !important;
                 visibility: hidden !important;
-                opacity: 0 !important;
             }
             
-            /* Sidebar toggle button styling */
+            /* Alternative collapsed state selector */
+            section[data-testid="stSidebar"][aria-expanded="false"] {
+                width: 0px !important;
+                min-width: 0px !important;
+                max-width: 0px !important;
+                overflow: hidden !important;
+            }
+            
+            section[data-testid="stSidebar"][aria-expanded="false"] > div {
+                width: 0px !important;
+                min-width: 0px !important;
+                max-width: 0px !important;
+                overflow: hidden !important;
+                visibility: hidden !important;
+            }
+            
+            /* Main content responsive to sidebar state */
+            .main {
+                transition: margin-left 0.3s ease !important;
+            }
+            
+            .main .block-container {
+                max-width: none !important;
+                padding-left: 2rem !important;
+                padding-right: 2rem !important;
+            }
+            
+            /* Hamburger button enhancement */
             button[kind="header"] {
-                position: fixed !important;
-                top: 1rem !important;
-                left: 1rem !important;
-                z-index: 1000 !important;
-                background: rgba(44, 62, 80, 0.9) !important;
+                background: rgba(44, 62, 80, 0.95) !important;
+                border: 1px solid #4a4a4a !important;
                 border-radius: 8px !important;
-                border: 1px solid #3a3a3a !important;
                 padding: 0.5rem !important;
+                transition: all 0.2s ease !important;
             }
             
             button[kind="header"]:hover {
-                background: rgba(52, 73, 94, 0.9) !important;
+                background: rgba(52, 73, 94, 0.95) !important;
                 transform: scale(1.05) !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
             }
             
-            /* Main content area adjustments */
-            .main .block-container {
-                transition: all 0.3s ease !important;
-                padding-left: 2rem !important;
-            }
-            
-            /* When sidebar is collapsed, expand main content */
-            section[data-testid="stSidebar"][data-collapsed="true"] ~ .main .block-container {
-                margin-left: 0px !important;
-                max-width: calc(100vw - 2rem) !important;
-                padding-left: 2rem !important;
-            }
-            
-            /* Mobile responsive adjustments */
+            /* Mobile optimizations */
             @media screen and (max-width: 768px) {
                 section[data-testid="stSidebar"] {
-                    width: 280px !important;
-                    min-width: 280px !important;
-                    max-width: 280px !important;
+                    width: 300px !important;
+                    min-width: 300px !important;
+                    max-width: 300px !important;
+                    position: fixed !important;
+                    left: 0 !important;
+                    top: 0 !important;
+                    height: 100vh !important;
+                    z-index: 1000 !important;
+                    box-shadow: 2px 0 10px rgba(0,0,0,0.3) !important;
                 }
                 
                 section[data-testid="stSidebar"] > div {
-                    width: 280px !important;
-                    min-width: 280px !important;
-                    max-width: 280px !important;
+                    width: 300px !important;
+                    min-width: 300px !important;
+                    max-width: 300px !important;
+                    height: 100vh !important;
                 }
                 
-                section[data-testid="stSidebar"][data-collapsed="true"] {
-                    margin-left: -280px !important;
+                /* Mobile collapsed state */
+                section[data-testid="stSidebar"].st-emotion-cache-1d391kg,
+                section[data-testid="stSidebar"][aria-expanded="false"] {
+                    left: -300px !important;
+                    width: 300px !important;
+                    min-width: 300px !important;
+                    max-width: 300px !important;
                 }
                 
-                /* Main content adjustments for mobile */
+                /* Main content on mobile */
                 .main .block-container {
                     padding-left: 1rem !important;
                     padding-right: 1rem !important;
+                    max-width: 100% !important;
                 }
                 
-                section[data-testid="stSidebar"][data-collapsed="true"] ~ .main .block-container {
-                    margin-left: 0px !important;
-                    max-width: calc(100vw - 2rem) !important;
+                /* Overlay when sidebar is open on mobile */
+                section[data-testid="stSidebar"]:not(.st-emotion-cache-1d391kg):not([aria-expanded="false"])::before {
+                    content: '';
+                    position: fixed;
+                    top: 0;
+                    left: 300px;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0,0,0,0.5);
+                    z-index: 999;
                 }
             }
             
