@@ -246,9 +246,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Need help? We're here for you!
 
-- 📧 **Email**: support@financialnewsanalyzer.com
-- 💬 **Discord**: [Join our community](https://discord.gg/financialnews)
-- 📖 **Documentation**: [Full Documentation](https://docs.financialnewsanalyzer.com)
+- 📧 **Email**: enesor8@gmail.com
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/enecpp/mleng-financial_news_analyzer/issues)
 
 ---
