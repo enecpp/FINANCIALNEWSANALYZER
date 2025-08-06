@@ -1,4 +1,4 @@
-# 🏦 Financial News Analyzer
+# 🏦 Financial News Analyzer, https://financialnewsanalyzer.streamlit.app/
 
 <div align="center">
 
