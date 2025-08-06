@@ -6,12 +6,11 @@ Get in touch with our team for inquiries, feedback, or support
 import streamlit as st  # type: ignore
 import sys
 import os
-# Ensure project root is on Python path (so src/ is importable)
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, project_root)
+# Ensure src folder is on Python path for infrastructure imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 from datetime import datetime
 # Onion architecture service for feedback persistence
-from src.infrastructure.services.feedback_service import FeedbackService
+from infrastructure.services.feedback_service import FeedbackService
 
 # Page configuration
 st.set_page_config(
