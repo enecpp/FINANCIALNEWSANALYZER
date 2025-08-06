@@ -4,6 +4,10 @@ Get in touch with our team for inquiries, feedback, or support
 """
 
 import streamlit as st  # type: ignore
+import sys
+import os
+# Ensure src folder is on Python path for infrastructure imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 from datetime import datetime
 # Onion architecture service for feedback persistence
 from infrastructure.services.feedback_service import FeedbackService
@@ -178,14 +182,16 @@ st.markdown("""
 
 </div>
 """, unsafe_allow_html=True)
-=======
 """
 Contact Us Page
 Get in touch with our team for inquiries, feedback, or support
 """
 
 import streamlit as st  # type: ignore
+import sys
 import os
+# Ensure src folder is on Python path for infrastructure imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 import csv
 from datetime import datetime
 import smtplib
@@ -387,4 +393,3 @@ st.markdown("""
 
 </div>
 """, unsafe_allow_html=True)
-
