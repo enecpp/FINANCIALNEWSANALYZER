@@ -1,7 +1,3 @@
-"""
-Contact Us Page
-Get in touch with our team for inquiries, feedback, or support
-"""
 
 import streamlit as st  # type: ignore
 import sys
