@@ -11,6 +11,13 @@ except ImportError:
 
 import streamlit as st # type: ignore
 
+# Import GitHub feedback service
+try:
+    from .github_feedback_service import GitHubFeedbackService
+    GITHUB_FEEDBACK_AVAILABLE = True
+except ImportError:
+    GITHUB_FEEDBACK_AVAILABLE = False
+
 
 class FeedbackService:
     """

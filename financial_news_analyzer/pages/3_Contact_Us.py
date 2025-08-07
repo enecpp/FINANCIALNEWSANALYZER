@@ -1,6 +1,7 @@
 import streamlit as st  # type: ignore
 import sys
 import os
+from datetime import datetime
 
 # src klasörünü import yoluna ekle
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
@@ -167,8 +168,29 @@ with st.expander("🔧 Debug Bilgileri", expanded=False):
                 else:
                     st.error("❌ Google Cloud Service Account bilgileri eksik!")
                     
+                # Test FeedbackService initialization
+                st.write("**🔧 Service Test:**")
+                try:
+                    test_service = FeedbackService(st.secrets)
+                    if test_service.gsheet_client:
+                        st.success("✅ Google Sheets client başarıyla oluşturuldu")
+                    else:
+                        st.error("❌ Google Sheets client oluşturulamadı")
+                        st.info("📋 **Console Logs kontrolü için Streamlit Cloud logs'una bakın**")
+                except Exception as service_error:
+                    st.error(f"❌ Service initialization error: {str(service_error)}")
+                    
                 # CSV fallback bilgisi
                 st.info("📁 CSV Fallback: Aktif (Google Sheets çalışmazsa mesajlar CSV dosyasına kaydedilir)")
+                
+                # Console logs access
+                st.info("📊 **Console Logs Erişimi:**")
+                st.code("""
+1. Streamlit Cloud dashboard'a gidin
+2. App'ınızı seçin  
+3. "Logs" sekmesine tıklayın
+4. "DEBUG: " ile başlayan mesajları arayın
+                """)
                 
                 # Placeholder uyarısı
                 if ("your-actual-project-id" in str(st.secrets.get("gcp_service_account", {})) or 
@@ -190,6 +212,50 @@ with st.expander("🔧 Debug Bilgileri", expanded=False):
                 st.error("❌ Streamlit secrets yapılandırılmamış!")
         except Exception as e:
             st.error(f"❌ Secrets kontrolü sırasında hata: {str(e)}")
+
+# Manual fallback test button
+with st.expander("🧪 Manual Test", expanded=False):
+    if st.button("🔄 Service Test"):
+        if FEEDBACK_SERVICE_AVAILABLE:
+            try:
+                with st.spinner("Service test ediliyor..."):
+                    test_service = FeedbackService(st.secrets)
+                    
+                    if test_service.gsheet_client:
+                        st.success("✅ Google Sheets client çalışıyor!")
+                        
+                        # Test actual connection
+                        try:
+                            sheet_id = st.secrets.get("GOOGLE_SHEET_ID")
+                            if sheet_id:
+                                test_sheet = test_service.gsheet_client.open_by_key(sheet_id)
+                                st.success(f"✅ Sheet erişimi başarılı: {test_sheet.title}")
+                            else:
+                                st.error("❌ Sheet ID bulunamadı")
+                        except Exception as sheet_error:
+                            st.error(f"❌ Sheet erişim hatası: {str(sheet_error)}")
+                    else:
+                        st.error("❌ Google Sheets client oluşturulamadı")
+                        st.info("📋 Console logs'da 'DEBUG:' mesajlarını kontrol edin")
+                        
+                        # Force CSV test
+                        st.info("🔄 CSV fallback test ediliyor...")
+                        csv_success = test_service._save_to_csv({
+                            'timestamp': datetime.utcnow().isoformat(),
+                            'name': 'Test User',
+                            'email': 'test@example.com',
+                            'message': 'Test message from manual test'
+                        })
+                        
+                        if csv_success:
+                            st.success("✅ CSV fallback çalışıyor!")
+                        else:
+                            st.error("❌ CSV fallback da başarısız!")
+                            
+            except Exception as test_error:
+                st.error(f"❌ Service test hatası: {str(test_error)}")
+        else:
+            st.error("❌ Feedback service mevcut değil")
 
 # Form başarı durumu
 if 'form_submitted' in st.session_state and st.session_state.form_submitted:
