@@ -13,7 +13,8 @@ st.set_page_config(
 def load_custom_css():
     """Load custom CSS for consistent styling"""
     st.markdown("""
-    <style>
+    <s            with col_name:
+                name = st.text_input("👤 Full Name *", placeholder="Enter your full name", key="name")le>
     /* Main theme colors - matching other pages */
     :root {
         --primary-bg: #1a1a1a;
