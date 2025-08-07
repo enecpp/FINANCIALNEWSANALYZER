@@ -51,11 +51,15 @@ class FeedbackService:
                 
             print("DEBUG: Credentials dict bulundu ve placeholder değil")
             
+            # Updated scopes for better compatibility
             scope = [
-                "https://spreadsheets.google.com/feeds",
-                "https://www.googleapis.com/auth/drive"
+                'https://www.googleapis.com/auth/spreadsheets',
+                'https://www.googleapis.com/auth/drive'
             ]
             
+            print("DEBUG: Scope ayarlandı")
+            
+            # Create credentials
             credentials = Credentials.from_service_account_info(
                 credentials_dict, 
                 scopes=scope
@@ -63,8 +67,21 @@ class FeedbackService:
             
             print("DEBUG: Credentials oluşturuldu")
             
+            # Authorize with gspread
             self.gsheet_client = gspread.authorize(credentials)
             print("DEBUG: gspread client oluşturuldu")
+            
+            # Test connection
+            try:
+                test_sheet_id = st.secrets.get("GOOGLE_SHEET_ID")
+                if test_sheet_id:
+                    test_sheet = self.gsheet_client.open_by_key(test_sheet_id)
+                    print(f"DEBUG: Test bağlantısı başarılı - {test_sheet.title}")
+                else:
+                    print("DEBUG: Test sheet ID bulunamadı")
+            except Exception as test_e:
+                print(f"DEBUG: Test bağlantısı başarısız: {str(test_e)}")
+                self.gsheet_client = None
             
         except Exception as e:
             print(f"DEBUG: Google Sheets init hatası: {str(e)}")
@@ -96,12 +113,29 @@ class FeedbackService:
         st.info("💾 Mesaj kaydediliyor...")
         
         # Debug info
-        with st.expander("🔧 Debug - Kayıt Detayları", expanded=False):
+        with st.expander("🔧 Debug - Kayıt Detayları", expanded=True):
             st.write("**Google Sheets Bağlantı Durumu:**")
             if self.gsheet_client:
                 st.success("✅ Google Sheets client hazır")
+                
+                # Test bağlantı
+                try:
+                    sheet_id = st.secrets.get("GOOGLE_SHEET_ID")
+                    if sheet_id:
+                        test_sheet = self.gsheet_client.open_by_key(sheet_id)
+                        st.success(f"✅ Test bağlantısı başarılı: {test_sheet.title}")
+                    else:
+                        st.error("❌ Sheet ID bulunamadı")
+                except Exception as e:
+                    st.error(f"❌ Sheet bağlantı testi başarısız: {str(e)}")
+                    
             else:
                 st.error("❌ Google Sheets client oluşturulamadı")
+                st.info("🔧 **Olası nedenler:**")
+                st.write("- Service account JSON'ı eksik veya hatalı")
+                st.write("- Google Sheets API etkinleştirilmemiş")
+                st.write("- Google Drive API etkinleştirilmemiş")
+                st.write("- Service account yetkileiri yetersiz")
                 
             sheet_id = st.secrets.get("GOOGLE_SHEET_ID")
             if sheet_id:
