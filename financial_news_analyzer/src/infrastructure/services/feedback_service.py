@@ -1,42 +1,78 @@
 import os
 import csv
 from datetime import datetime
+
 try:
-    import firebase_admin  # type: ignore
-    from firebase_admin import credentials, firestore  # type: ignore
-    FIREBASE_AVAILABLE = True
+    import gspread  # type: ignore
+    from google.oauth2.service_account import Credentials  # type: ignore
+    GSPREAD_AVAILABLE = True
 except ImportError:
-    FIREBASE_AVAILABLE = False
+    GSPREAD_AVAILABLE = False
+
 import streamlit as st # type: ignore
 
 
 class FeedbackService:
     """
-    Service for saving user feedback to Firestore with CSV fallback.
+    Service for saving user feedback to Google Sheets with CSV fallback.
+    Priority: Google Sheets -> CSV
     """
     def __init__(self, secrets: dict):
         self.secrets = secrets
-        # Initialize Firestore client if available
-        if FIREBASE_AVAILABLE:
-            try:
-                if not firebase_admin._apps:
-                    creds_dict = st.secrets.get("gcp_service_account", {})
-                    creds = credentials.Certificate(creds_dict)
-                    firebase_admin.initialize_app(creds)
-                self.db = firestore.client()
-            except Exception:
-                self.db = None
-        else:
-            self.db = None
-        # Prepare local CSV path
+        self.gsheet_client = None
+        
+        # Initialize Google Sheets client
+        if GSPREAD_AVAILABLE:
+            self._init_google_sheets()
+        
+        # Prepare local CSV path as final fallback
         self.csv_dir = os.path.join(os.getcwd(), 'data')
         os.makedirs(self.csv_dir, exist_ok=True)
         self.csv_file = os.path.join(self.csv_dir, 'feedback.csv')
 
-    def save(self, name: str, email: str, message: str) -> None:
+    def _init_google_sheets(self):
+        """Initialize Google Sheets client."""
+        try:
+            credentials_dict = st.secrets.get("gcp_service_account", {})
+            if not credentials_dict:
+                print("DEBUG: gcp_service_account secrets bulunamadı")
+                return
+            
+            print("DEBUG: Credentials dict bulundu")
+            
+            scope = [
+                "https://spreadsheets.google.com/feeds",
+                "https://www.googleapis.com/auth/drive"
+            ]
+            
+            credentials = Credentials.from_service_account_info(
+                credentials_dict, 
+                scopes=scope
+            )
+            
+            print("DEBUG: Credentials oluşturuldu")
+            
+            self.gsheet_client = gspread.authorize(credentials)
+            print("DEBUG: gspread client oluşturuldu")
+            
+        except Exception as e:
+            print(f"DEBUG: Google Sheets init hatası: {str(e)}")
+            import traceback
+            print(f"DEBUG: Traceback: {traceback.format_exc()}")
+            self.gsheet_client = None
+
+    def save(self, name: str, email: str, message: str) -> bool:
         """
-        Save feedback to Firestore; on failure, append to local CSV.
+        Save feedback with Google Sheets and CSV fallback.
+        Priority: Google Sheets -> CSV
+        
+        Returns:
+            bool: True if saved successfully to any backend
         """
+        if not name or not email or not message:
+            st.warning("Lütfen tüm alanları doldurun.")
+            return False
+            
         timestamp = datetime.utcnow().isoformat()
         data = {
             'timestamp': timestamp,
@@ -44,18 +80,89 @@ class FeedbackService:
             'email': email,
             'message': message
         }
-        # Attempt to store in Firestore if client initialized
-        if self.db:
+        
+        # Try Google Sheets first
+        if self._save_to_google_sheets(data):
+            st.success("✅ Mesajınız başarıyla kaydedildi!")
+            return True
+        
+        # Use CSV as fallback
+        if self._save_to_csv(data):
+            st.warning("⚠️ Mesajınız geçici olarak yerel dosyaya kaydedildi.")
+            return True
+        
+        st.error("❌ Mesaj kaydedilemedi. Lütfen daha sonra tekrar deneyin.")
+        return False
+
+    def _save_to_google_sheets(self, data: dict) -> bool:
+        """Save to Google Sheets."""
+        if not self.gsheet_client:
+            print("DEBUG: gsheet_client None")
+            return False
+            
+        try:
+            spreadsheet_id = st.secrets.get("GOOGLE_SHEET_ID")
+            if not spreadsheet_id:
+                print("DEBUG: GOOGLE_SHEET_ID bulunamadı")
+                return False
+            
+            # Check if service account credentials are properly configured
+            credentials_dict = st.secrets.get("gcp_service_account", {})
+            if not credentials_dict or credentials_dict.get("project_id") == "your-actual-project-id":
+                print("DEBUG: Service account credentials henüz yapılandırılmamış")
+                return False
+            
+            print(f"DEBUG: Sheet ID: {spreadsheet_id}")
+            spreadsheet = self.gsheet_client.open_by_key(spreadsheet_id)
+            print("DEBUG: Spreadsheet açıldı")
+            
             try:
-                collection = st.secrets.get("FIRESTORE_COLLECTION", "feedback")
-                self.db.collection(collection).add(data)
-                return
-            except Exception:
-                pass
-        # Fallback to CSV storage
-        file_exists = os.path.exists(self.csv_file)
-        with open(self.csv_file, 'a', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            if not file_exists:
-                writer.writerow(['Timestamp', 'Name', 'Email', 'Message'])
-            writer.writerow([timestamp, name, email, message])
+                worksheet = spreadsheet.worksheet("Feedback")
+                print("DEBUG: Feedback worksheet bulundu")
+            except Exception as e:
+                print(f"DEBUG: Feedback worksheet bulunamadı, oluşturuluyor: {e}")
+                worksheet = spreadsheet.add_worksheet(
+                    title="Feedback", 
+                    rows="1000", 
+                    cols="10"
+                )
+                worksheet.append_row([
+                    "Timestamp", "Name", "Email", "Message", "Status"
+                ])
+                print("DEBUG: Feedback worksheet oluşturuldu")
+            
+            # Add the data
+            worksheet.append_row([
+                data['timestamp'],
+                data['name'], 
+                data['email'], 
+                data['message'],
+                "Yeni"
+            ])
+            print("DEBUG: Veri başarıyla eklendi")
+            
+            return True
+            
+        except Exception as e:
+            print(f"DEBUG: Google Sheets hatası: {str(e)}")
+            import traceback
+            print(f"DEBUG: Traceback: {traceback.format_exc()}")
+            return False
+
+    def _save_to_csv(self, data: dict) -> bool:
+        """Save to CSV file."""
+        try:
+            file_exists = os.path.exists(self.csv_file)
+            with open(self.csv_file, 'a', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                if not file_exists:
+                    writer.writerow(['Timestamp', 'Name', 'Email', 'Message'])
+                writer.writerow([
+                    data['timestamp'], 
+                    data['name'], 
+                    data['email'], 
+                    data['message']
+                ])
+            return True
+        except Exception:
+            return False

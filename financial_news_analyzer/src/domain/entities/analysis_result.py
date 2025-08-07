@@ -113,12 +113,12 @@ class AnalysisResult:
     - Observer pattern for result notifications
     """
     
-    # Core identification
+    # Core identification (required fields first)
     id: str
     analysis_type: AnalysisType
     subject_id: str  # ID of analyzed entity (news, stock, etc.)
     
-    # Analysis results
+    # Analysis results (optional fields with defaults)
     sentiment_score: Optional[SentimentScore] = None
     impact_score: Optional[float] = None  # 0.0 to 1.0
     confidence_level: Optional[float] = None  # 0.0 to 1.0
@@ -137,8 +137,8 @@ class AnalysisResult:
     data_sources: Optional[List[str]] = None
     processing_time_ms: Optional[int] = None
     
-    # Metadata
-    created_at: datetime
+    # Metadata (created_at default olarak datetime.now() kullanacak)
+    created_at: datetime = None  # Will be set in __post_init__
     analyst: Optional[str] = None  # Human or AI analyst identifier
     version: str = "1.0"
     

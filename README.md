@@ -1,4 +1,4 @@
-# 🏦 Financial News Analyzer, https://financialnewsanalyzer.streamlit.app/
+# 🏦 Financial News Analyzer
 
 <div align="center">
 
@@ -7,7 +7,9 @@
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-**Professional Financial Analysis & Market Intelligence Platform**
+**Professional Financial Analysis & Market Intelligence Platform with Google Sheets Feedback System**
+
+🌐 **Live Demo:** [financialnewsanalyzer.streamlit.app](https://financialnewsanalyzer.streamlit.app/)
 
 *Advanced AI-powered financial news sentiment analysis with real-time market data visualization*
 
@@ -60,13 +62,14 @@ Financial News Analyzer is a cutting-edge financial intelligence platform that c
 - Python 3.8 or higher
 - pip package manager
 - 4GB RAM minimum (8GB recommended)
+- Google Cloud Service Account (for feedback system)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/enecpp/mleng-financial_news_analyzer.git
-   cd financial_news_analyzer
+   git clone https://github.com/enecpp/FINANCIALNEWSANALYZER.git
+   cd FINANCIALNEWSANALYZER/financial_news_analyzer
    ```
 
 2. **Create virtual environment**
@@ -80,12 +83,17 @@ Financial News Analyzer is a cutting-edge financial intelligence platform that c
    pip install -r requirements.txt
    ```
 
-4. **Launch the application**
+4. **Setup Streamlit Secrets (for feedback system)**
+   - Copy `.streamlit/secrets.toml.template` to `.streamlit/secrets.toml`
+   - Follow the setup guide in `STREAMLIT_CLOUD_SECRETS.md`
+   - Or see `FEEDBACK_SETUP.md` for detailed Google Sheets integration
+
+5. **Launch the application**
    ```bash
    streamlit run Start.py
    ```
 
-5. **Access the platform**
+6. **Access the platform**
    - Open your browser and navigate to `http://localhost:8501`
    - Enjoy the comprehensive financial analysis experience!
 
@@ -98,7 +106,22 @@ plotly>=5.15.0
 numpy>=1.24.0
 pytz>=2023.3
 python-dateutil>=2.8.2
+gspread>=5.12.0
+google-auth>=2.22.0
+google-auth-oauthlib>=1.0.0
+google-auth-httplib2>=0.1.0
 ```
+
+## 🔐 Security & Configuration
+
+**Important:** This project uses Google Sheets for feedback storage. For security:
+
+- 📋 **Setup Guide**: See `FEEDBACK_SETUP.md` for detailed configuration
+- 🚀 **Streamlit Cloud**: See `STREAMLIT_CLOUD_SECRETS.md` for cloud deployment
+- 🛡️ **Security**: Never commit API keys to Git (already configured in `.gitignore`)
+- 📝 **Template**: Use `.streamlit/secrets.toml.template` as reference
+
+The feedback system safely stores user messages in Google Sheets with CSV fallback.
 
 ## 🏗️ Architecture
 
@@ -247,7 +270,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Need help? We're here for you!
 
 - 📧 **Email**: enesor8@gmail.com
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/enecpp/mleng-financial_news_analyzer/issues)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/enecpp/FINANCIALNEWSANALYZER/issues)
+- 📋 **Setup Help**: Check `FEEDBACK_SETUP.md` and `STREAMLIT_CLOUD_SECRETS.md`
+- 🔐 **Security**: All sensitive data is properly secured and not exposed in repository
 
 ---
 
