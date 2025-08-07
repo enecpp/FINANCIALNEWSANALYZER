@@ -38,7 +38,18 @@ class FeedbackService:
                 print("DEBUG: gcp_service_account secrets bulunamadı")
                 return
             
-            print("DEBUG: Credentials dict bulundu")
+            # Check for placeholder values
+            project_id = credentials_dict.get("project_id", "")
+            client_email = credentials_dict.get("client_email", "")
+            private_key = credentials_dict.get("private_key", "")
+            
+            if (project_id == "your-actual-project-id" or 
+                "your-project" in client_email or 
+                "YOUR_ACTUAL_PRIVATE_KEY" in private_key):
+                print("DEBUG: Service account credentials henüz placeholder değerlerinde")
+                return
+                
+            print("DEBUG: Credentials dict bulundu ve placeholder değil")
             
             scope = [
                 "https://spreadsheets.google.com/feeds",
@@ -81,14 +92,18 @@ class FeedbackService:
             'message': message
         }
         
+        # Show what we're trying first
+        st.info("💾 Mesaj kaydediliyor...")
+        
         # Try Google Sheets first
         if self._save_to_google_sheets(data):
-            st.success("✅ Mesajınız başarıyla kaydedildi!")
+            st.success("✅ Mesajınız Google Sheets'e başarıyla kaydedildi!")
             return True
         
         # Use CSV as fallback
         if self._save_to_csv(data):
-            st.warning("⚠️ Mesajınız geçici olarak yerel dosyaya kaydedildi.")
+            st.warning("⚠️ Google Sheets bağlantısı kurulamadı. Mesajınız yerel CSV dosyasına kaydedildi.")
+            st.info("📧 Google Sheets sorunu çözüldükten sonra mesajlar otomatik olarak senkronize edilecek.")
             return True
         
         st.error("❌ Mesaj kaydedilemedi. Lütfen daha sonra tekrar deneyin.")

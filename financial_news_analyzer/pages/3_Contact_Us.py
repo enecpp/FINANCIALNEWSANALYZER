@@ -168,7 +168,23 @@ with st.expander("🔧 Debug Bilgileri", expanded=False):
                     st.error("❌ Google Cloud Service Account bilgileri eksik!")
                     
                 # CSV fallback bilgisi
-                st.info("📁 CSV Fallback: Aktif (Google Sheets çalışmazsa CSV'ye kaydedilir)")
+                st.info("📁 CSV Fallback: Aktif (Google Sheets çalışmazsa mesajlar CSV dosyasına kaydedilir)")
+                
+                # Placeholder uyarısı
+                if ("your-actual-project-id" in str(st.secrets.get("gcp_service_account", {})) or 
+                    "your-project" in str(st.secrets.get("gcp_service_account", {}).get("client_email", ""))):
+                    st.warning("⚠️ **Google Sheets için gerçek Service Account bilgileri gerekli**")
+                    st.info("""
+                    **Çözüm:**
+                    1. Google Cloud Console'da Service Account oluşturun
+                    2. JSON key dosyasını indirin  
+                    3. Streamlit Cloud secrets'ına gerçek bilgileri kopyalayın
+                    4. App'ı reboot edin
+                    
+                    **Şu anda:** Mesajlar CSV dosyasına kaydediliyor ✅
+                    """)
+                else:
+                    st.success("🔑 Service Account bilgileri placeholder değil - Google Sheets bağlantısı hazır")
                 
             else:
                 st.error("❌ Streamlit secrets yapılandırılmamış!")
