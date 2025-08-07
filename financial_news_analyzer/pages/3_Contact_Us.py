@@ -133,80 +133,48 @@ with st.expander("🔧 Debug Bilgileri", expanded=False):
             if hasattr(st, 'secrets'):
                 st.info("✅ Streamlit secrets yapılandırılmış")
                 
-                # Google Sheet ID kontrolü
-                if "GOOGLE_SHEET_ID" in st.secrets:
-                    sheet_id = st.secrets["GOOGLE_SHEET_ID"]
-                    st.success(f"✅ Google Sheet ID: {sheet_id[:10]}...")
+                # GitHub Token kontrolü
+                if "GITHUB_TOKEN" in st.secrets:
+                    token = st.secrets["GITHUB_TOKEN"]
+                    st.success(f"✅ GitHub Token: {token[:8]}...")
                 else:
-                    st.error("❌ Google Sheet ID eksik!")
+                    st.warning("⚠️ GitHub Token eksik!")
+                    st.info("💡 **Çözüm:** GitHub Personal Access Token oluşturun ve GITHUB_TOKEN olarak ekleyin")
                 
-                # Service Account kontrolü
-                if "gcp_service_account" in st.secrets:
-                    service_account = st.secrets["gcp_service_account"]
-                    project_id = service_account.get("project_id", "")
-                    client_email = service_account.get("client_email", "")
-                    
-                    if project_id and project_id != "your-actual-project-id":
-                        st.success("✅ Google Cloud Service Account - Project ID yapılandırılmış")
-                    else:
-                        st.warning("⚠️ Google Cloud Service Account - Project ID placeholder değerde")
-                        st.info("💡 **Çözüm:** Google Cloud Console'dan Service Account oluşturun ve gerçek project_id'yi girin")
-                    
-                    if client_email and "@" in client_email and "your-project.iam.gserviceaccount.com" not in client_email:
-                        st.success("✅ Google Cloud Service Account - Client Email yapılandırılmış")
-                    else:
-                        st.warning("⚠️ Google Cloud Service Account - Client Email placeholder değerde")
-                        st.info("💡 **Çözüm:** Service Account JSON'ından client_email değerini kopyalayın")
-                        
-                    if service_account.get("private_key") and "BEGIN PRIVATE KEY" in service_account.get("private_key", ""):
-                        if "your-actual-private-key" not in service_account.get("private_key", ""):
-                            st.success("✅ Google Cloud Service Account - Private Key yapılandırılmış")
-                        else:
-                            st.warning("⚠️ Google Cloud Service Account - Private Key placeholder değerde")
-                    else:
-                        st.error("❌ Google Cloud Service Account - Private Key eksik!")
-                else:
-                    st.error("❌ Google Cloud Service Account bilgileri eksik!")
+                # GitHub Repo bilgileri
+                repo_owner = st.secrets.get("GITHUB_REPO_OWNER", "enecpp")
+                repo_name = st.secrets.get("GITHUB_REPO_NAME", "FINANCIALNEWSANALYZER")
+                st.success(f"✅ GitHub Repo: {repo_owner}/{repo_name}")
                     
                 # Test FeedbackService initialization
                 st.write("**🔧 Service Test:**")
                 try:
                     test_service = FeedbackService(st.secrets)
-                    if test_service.gsheet_client:
-                        st.success("✅ Google Sheets client başarıyla oluşturuldu")
+                    if test_service.github_service and test_service.github_service.is_configured():
+                        if test_service.github_service.test_connection():
+                            st.success("✅ GitHub Issues API başarıyla çalışıyor")
+                        else:
+                            st.warning("⚠️ GitHub API bağlantı sorunu")
                     else:
-                        st.error("❌ Google Sheets client oluşturulamadı")
-                        st.info("📋 **Console Logs kontrolü için Streamlit Cloud logs'una bakın**")
+                        st.warning("⚠️ GitHub Issues servisi yapılandırılmamış")
+                        
+                    st.success("✅ CSV Fallback sistem hazır")
+                        
                 except Exception as service_error:
                     st.error(f"❌ Service initialization error: {str(service_error)}")
                     
                 # CSV fallback bilgisi
-                st.info("📁 CSV Fallback: Aktif (Google Sheets çalışmazsa mesajlar CSV dosyasına kaydedilir)")
+                st.info("📁 CSV Fallback: Aktif (Her durumda mesajlar CSV dosyasına kaydedilir)")
                 
-                # Console logs access
-                st.info("📊 **Console Logs Erişimi:**")
+                # GitHub setup guide
+                st.info("� **GitHub Token Setup:**")
                 st.code("""
-1. Streamlit Cloud dashboard'a gidin
-2. App'ınızı seçin  
-3. "Logs" sekmesine tıklayın
-4. "DEBUG: " ile başlayan mesajları arayın
+1. GitHub → Settings → Developer settings → Personal access tokens
+2. Generate new token (classic)
+3. Repo scope'unu seçin
+4. Token'ı kopyalayın
+5. Streamlit Cloud → App Settings → Secrets → GITHUB_TOKEN olarak ekleyin
                 """)
-                
-                # Placeholder uyarısı
-                if ("your-actual-project-id" in str(st.secrets.get("gcp_service_account", {})) or 
-                    "your-project" in str(st.secrets.get("gcp_service_account", {}).get("client_email", ""))):
-                    st.warning("⚠️ **Google Sheets için gerçek Service Account bilgileri gerekli**")
-                    st.info("""
-                    **Çözüm:**
-                    1. Google Cloud Console'da Service Account oluşturun
-                    2. JSON key dosyasını indirin  
-                    3. Streamlit Cloud secrets'ına gerçek bilgileri kopyalayın
-                    4. App'ı reboot edin
-                    
-                    **Şu anda:** Mesajlar CSV dosyasına kaydediliyor ✅
-                    """)
-                else:
-                    st.success("🔑 Service Account bilgileri placeholder değil - Google Sheets bağlantısı hazır")
                 
             else:
                 st.error("❌ Streamlit secrets yapılandırılmamış!")
@@ -221,36 +189,28 @@ with st.expander("🧪 Manual Test", expanded=False):
                 with st.spinner("Service test ediliyor..."):
                     test_service = FeedbackService(st.secrets)
                     
-                    if test_service.gsheet_client:
-                        st.success("✅ Google Sheets client çalışıyor!")
-                        
-                        # Test actual connection
-                        try:
-                            sheet_id = st.secrets.get("GOOGLE_SHEET_ID")
-                            if sheet_id:
-                                test_sheet = test_service.gsheet_client.open_by_key(sheet_id)
-                                st.success(f"✅ Sheet erişimi başarılı: {test_sheet.title}")
-                            else:
-                                st.error("❌ Sheet ID bulunamadı")
-                        except Exception as sheet_error:
-                            st.error(f"❌ Sheet erişim hatası: {str(sheet_error)}")
-                    else:
-                        st.error("❌ Google Sheets client oluşturulamadı")
-                        st.info("📋 Console logs'da 'DEBUG:' mesajlarını kontrol edin")
-                        
-                        # Force CSV test
-                        st.info("🔄 CSV fallback test ediliyor...")
-                        csv_success = test_service._save_to_csv({
-                            'timestamp': datetime.utcnow().isoformat(),
-                            'name': 'Test User',
-                            'email': 'test@example.com',
-                            'message': 'Test message from manual test'
-                        })
-                        
-                        if csv_success:
-                            st.success("✅ CSV fallback çalışıyor!")
+                    # Test GitHub Issues
+                    if test_service.github_service and test_service.github_service.is_configured():
+                        if test_service.github_service.test_connection():
+                            st.success("✅ GitHub Issues API çalışıyor!")
                         else:
-                            st.error("❌ CSV fallback da başarısız!")
+                            st.error("❌ GitHub API bağlantı hatası")
+                    else:
+                        st.warning("⚠️ GitHub Issues servisi yapılandırılmamış")
+                        
+                    # Test CSV fallback
+                    st.info("🔄 CSV fallback test ediliyor...")
+                    csv_success = test_service._save_to_csv({
+                        'timestamp': datetime.utcnow().isoformat(),
+                        'name': 'Test User',
+                        'email': 'test@example.com',
+                        'message': 'Test message from manual test'
+                    })
+                    
+                    if csv_success:
+                        st.success("✅ CSV fallback çalışıyor!")
+                    else:
+                        st.error("❌ CSV fallback da başarısız!")
                             
             except Exception as test_error:
                 st.error(f"❌ Service test hatası: {str(test_error)}")
