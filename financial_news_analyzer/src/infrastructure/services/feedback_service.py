@@ -95,6 +95,35 @@ class FeedbackService:
         # Show what we're trying first
         st.info("💾 Mesaj kaydediliyor...")
         
+        # Debug info
+        with st.expander("🔧 Debug - Kayıt Detayları", expanded=False):
+            st.write("**Google Sheets Bağlantı Durumu:**")
+            if self.gsheet_client:
+                st.success("✅ Google Sheets client hazır")
+            else:
+                st.error("❌ Google Sheets client oluşturulamadı")
+                
+            sheet_id = st.secrets.get("GOOGLE_SHEET_ID")
+            if sheet_id:
+                st.success(f"✅ Sheet ID: {sheet_id[:10]}...")
+            else:
+                st.error("❌ Sheet ID bulunamadı")
+                
+            credentials = st.secrets.get("gcp_service_account", {})
+            if credentials:
+                project_id = credentials.get("project_id", "")
+                client_email = credentials.get("client_email", "")
+                
+                if "your-actual" in project_id:
+                    st.error("❌ Project ID hala placeholder")
+                else:
+                    st.success(f"✅ Project ID: {project_id}")
+                    
+                if "your-service" in client_email:
+                    st.error("❌ Client Email hala placeholder")
+                else:
+                    st.success(f"✅ Client Email: {client_email}")
+        
         # Try Google Sheets first
         if self._save_to_google_sheets(data):
             st.success("✅ Mesajınız Google Sheets'e başarıyla kaydedildi!")
@@ -112,30 +141,30 @@ class FeedbackService:
     def _save_to_google_sheets(self, data: dict) -> bool:
         """Save to Google Sheets."""
         if not self.gsheet_client:
-            print("DEBUG: gsheet_client None")
+            st.error("🔧 Debug: Google Sheets client bulunamadı")
             return False
             
         try:
             spreadsheet_id = st.secrets.get("GOOGLE_SHEET_ID")
             if not spreadsheet_id:
-                print("DEBUG: GOOGLE_SHEET_ID bulunamadı")
+                st.error("🔧 Debug: GOOGLE_SHEET_ID bulunamadı")
                 return False
             
             # Check if service account credentials are properly configured
             credentials_dict = st.secrets.get("gcp_service_account", {})
             if not credentials_dict or credentials_dict.get("project_id") == "your-actual-project-id":
-                print("DEBUG: Service account credentials henüz yapılandırılmamış")
+                st.error("🔧 Debug: Service account credentials henüz placeholder değerinde")
                 return False
             
-            print(f"DEBUG: Sheet ID: {spreadsheet_id}")
+            st.info(f"🔧 Debug: Sheet ID ile bağlanılıyor: {spreadsheet_id[:10]}...")
             spreadsheet = self.gsheet_client.open_by_key(spreadsheet_id)
-            print("DEBUG: Spreadsheet açıldı")
+            st.success("🔧 Debug: Spreadsheet başarıyla açıldı")
             
             try:
                 worksheet = spreadsheet.worksheet("Feedback")
-                print("DEBUG: Feedback worksheet bulundu")
+                st.success("🔧 Debug: Feedback worksheet bulundu")
             except Exception as e:
-                print(f"DEBUG: Feedback worksheet bulunamadı, oluşturuluyor: {e}")
+                st.warning(f"🔧 Debug: Feedback worksheet bulunamadı, oluşturuluyor... ({str(e)})")
                 worksheet = spreadsheet.add_worksheet(
                     title="Feedback", 
                     rows="1000", 
@@ -144,9 +173,10 @@ class FeedbackService:
                 worksheet.append_row([
                     "Timestamp", "Name", "Email", "Message", "Status"
                 ])
-                print("DEBUG: Feedback worksheet oluşturuldu")
+                st.success("🔧 Debug: Feedback worksheet oluşturuldu")
             
             # Add the data
+            st.info("🔧 Debug: Veri ekleniyor...")
             worksheet.append_row([
                 data['timestamp'],
                 data['name'], 
@@ -154,14 +184,14 @@ class FeedbackService:
                 data['message'],
                 "Yeni"
             ])
-            print("DEBUG: Veri başarıyla eklendi")
+            st.success("🔧 Debug: Veri başarıyla Google Sheets'e eklendi!")
             
             return True
             
         except Exception as e:
-            print(f"DEBUG: Google Sheets hatası: {str(e)}")
+            st.error(f"🔧 Debug: Google Sheets hatası: {str(e)}")
             import traceback
-            print(f"DEBUG: Traceback: {traceback.format_exc()}")
+            st.error(f"🔧 Debug: Detaylı hata: {traceback.format_exc()}")
             return False
 
     def _save_to_csv(self, data: dict) -> bool:
