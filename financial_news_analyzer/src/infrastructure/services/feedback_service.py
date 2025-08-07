@@ -31,12 +31,35 @@ class FeedbackService:
         self.csv_file = os.path.join(self.csv_dir, 'feedback.csv')
 
     def _init_google_sheets(self):
-        """Initialize Google Sheets client."""
+        """Initialize Google Sheets client with comprehensive error handling."""
+        print("DEBUG: Google Sheets client initialization başlıyor...")
+        
         try:
+            # Check gspread availability
+            if not GSPREAD_AVAILABLE:
+                print("DEBUG: gspread kütüphanesi bulunamadı")
+                return
+                
+            print("DEBUG: gspread kütüphanesi mevcut")
+            
+            # Get credentials from secrets
             credentials_dict = st.secrets.get("gcp_service_account", {})
             if not credentials_dict:
                 print("DEBUG: gcp_service_account secrets bulunamadı")
                 return
+            
+            print("DEBUG: gcp_service_account secrets bulundu")
+            
+            # Validate credential fields
+            required_fields = ["type", "project_id", "private_key_id", "private_key", 
+                             "client_email", "client_id", "auth_uri", "token_uri"]
+            
+            missing_fields = [field for field in required_fields if not credentials_dict.get(field)]
+            if missing_fields:
+                print(f"DEBUG: Eksik credential alanları: {missing_fields}")
+                return
+                
+            print("DEBUG: Tüm gerekli credential alanları mevcut")
             
             # Check for placeholder values
             project_id = credentials_dict.get("project_id", "")
@@ -49,45 +72,113 @@ class FeedbackService:
                 print("DEBUG: Service account credentials henüz placeholder değerlerinde")
                 return
                 
-            print("DEBUG: Credentials dict bulundu ve placeholder değil")
+            print(f"DEBUG: Project ID: {project_id}")
+            print(f"DEBUG: Client Email: {client_email}")
+            print(f"DEBUG: Private Key mevcut: {'private_key' in credentials_dict}")
             
-            # Updated scopes for better compatibility
+            # Validate private key format
+            if not private_key.startswith("-----BEGIN PRIVATE KEY-----"):
+                print("DEBUG: Private key formatı geçersiz - BEGIN marker eksik")
+                return
+                
+            if not private_key.endswith("-----END PRIVATE KEY-----\n"):
+                print("DEBUG: Private key formatı geçersiz - END marker eksik")
+                # Try to fix the format
+                if not private_key.endswith("\n"):
+                    credentials_dict["private_key"] = private_key + "\n"
+                    print("DEBUG: Private key formatı düzeltildi")
+                    
+            print("DEBUG: Private key formatı geçerli")
+            
+            # Create scopes
             scope = [
                 'https://www.googleapis.com/auth/spreadsheets',
-                'https://www.googleapis.com/auth/drive'
+                'https://www.googleapis.com/auth/drive.file'
             ]
             
-            print("DEBUG: Scope ayarlandı")
+            print(f"DEBUG: Scope ayarlandı: {scope}")
             
-            # Create credentials
+            # Create credentials step by step
+            print("DEBUG: Credentials oluşturuluyor...")
             credentials = Credentials.from_service_account_info(
                 credentials_dict, 
                 scopes=scope
             )
             
-            print("DEBUG: Credentials oluşturuldu")
+            if not credentials:
+                print("DEBUG: Credentials oluşturulamadı")
+                return
+                
+            print("DEBUG: Credentials başarıyla oluşturuldu")
+            print(f"DEBUG: Credentials valid: {credentials.valid}")
+            print(f"DEBUG: Credentials expired: {credentials.expired}")
+            
+            # Try to refresh credentials if needed
+            if credentials.expired:
+                print("DEBUG: Credentials süresi dolmuş, yenileniyor...")
+                try:
+                    credentials.refresh()
+                    print("DEBUG: Credentials başarıyla yenilendi")
+                except Exception as refresh_error:
+                    print(f"DEBUG: Credentials yenilenemedi: {str(refresh_error)}")
+                    return
             
             # Authorize with gspread
+            print("DEBUG: gspread authorization başlıyor...")
             self.gsheet_client = gspread.authorize(credentials)
-            print("DEBUG: gspread client oluşturuldu")
             
-            # Test connection
+            if not self.gsheet_client:
+                print("DEBUG: gspread client oluşturulamadı")
+                return
+                
+            print("DEBUG: gspread client başarıyla oluşturuldu")
+            
+            # Test connection with specific error handling
             try:
                 test_sheet_id = st.secrets.get("GOOGLE_SHEET_ID")
-                if test_sheet_id:
-                    test_sheet = self.gsheet_client.open_by_key(test_sheet_id)
-                    print(f"DEBUG: Test bağlantısı başarılı - {test_sheet.title}")
-                else:
-                    print("DEBUG: Test sheet ID bulunamadı")
+                if not test_sheet_id:
+                    print("DEBUG: GOOGLE_SHEET_ID bulunamadı")
+                    return
+                    
+                print(f"DEBUG: Test sheet ID: {test_sheet_id}")
+                print("DEBUG: Test bağlantısı deneniyor...")
+                
+                test_sheet = self.gsheet_client.open_by_key(test_sheet_id)
+                print(f"DEBUG: Test bağlantısı başarılı - Sheet title: {test_sheet.title}")
+                
+                # Test worksheet access
+                worksheets = test_sheet.worksheets()
+                print(f"DEBUG: Mevcut worksheets: {[ws.title for ws in worksheets]}")
+                
             except Exception as test_e:
                 print(f"DEBUG: Test bağlantısı başarısız: {str(test_e)}")
-                self.gsheet_client = None
+                print(f"DEBUG: Test error type: {type(test_e).__name__}")
+                
+                # Keep client even if test fails - might be sheet access issue
+                if "not found" in str(test_e).lower():
+                    print("DEBUG: Sheet bulunamadı ama client çalışıyor olabilir")
+                elif "permission" in str(test_e).lower():
+                    print("DEBUG: İzin hatası - Service account'a sheet erişimi verilmeli")
+                    self.gsheet_client = None
+                else:
+                    print("DEBUG: Bilinmeyen test hatası - client temizleniyor")
+                    self.gsheet_client = None
             
+        except ImportError as ie:
+            print(f"DEBUG: Import hatası: {str(ie)}")
+            self.gsheet_client = None
         except Exception as e:
-            print(f"DEBUG: Google Sheets init hatası: {str(e)}")
+            print(f"DEBUG: Google Sheets init genel hatası: {str(e)}")
+            print(f"DEBUG: Error type: {type(e).__name__}")
             import traceback
             print(f"DEBUG: Traceback: {traceback.format_exc()}")
             self.gsheet_client = None
+            
+        # Final status
+        if self.gsheet_client:
+            print("DEBUG: Google Sheets client initialization BAŞARILI ✅")
+        else:
+            print("DEBUG: Google Sheets client initialization BAŞARISIZ ❌")
 
     def save(self, name: str, email: str, message: str) -> bool:
         """
@@ -124,6 +215,12 @@ class FeedbackService:
                     if sheet_id:
                         test_sheet = self.gsheet_client.open_by_key(sheet_id)
                         st.success(f"✅ Test bağlantısı başarılı: {test_sheet.title}")
+                        
+                        # Show worksheets
+                        worksheets = test_sheet.worksheets()
+                        ws_names = [ws.title for ws in worksheets]
+                        st.info(f"📊 Mevcut worksheets: {', '.join(ws_names)}")
+                        
                     else:
                         st.error("❌ Sheet ID bulunamadı")
                 except Exception as e:
@@ -131,15 +228,52 @@ class FeedbackService:
                     
             else:
                 st.error("❌ Google Sheets client oluşturulamadı")
-                st.info("🔧 **Olası nedenler:**")
-                st.write("- Service account JSON'ı eksik veya hatalı")
-                st.write("- Google Sheets API etkinleştirilmemiş")
-                st.write("- Google Drive API etkinleştirilmemiş")
-                st.write("- Service account yetkileiri yetersiz")
+                st.info("🔧 **Detaylı Tanı:**")
+                
+                # Check gspread availability
+                if GSPREAD_AVAILABLE:
+                    st.success("✅ gspread kütüphanesi mevcut")
+                else:
+                    st.error("❌ gspread kütüphanesi bulunamadı")
+                    
+                # Check secrets
+                credentials = st.secrets.get("gcp_service_account", {})
+                if credentials:
+                    st.success("✅ Service account secrets mevcut")
+                    
+                    # Check required fields
+                    required_fields = ["type", "project_id", "private_key_id", "private_key", 
+                                     "client_email", "client_id", "auth_uri", "token_uri"]
+                    
+                    missing_fields = [field for field in required_fields if not credentials.get(field)]
+                    if missing_fields:
+                        st.error(f"❌ Eksik alanlar: {', '.join(missing_fields)}")
+                    else:
+                        st.success("✅ Tüm gerekli alanlar mevcut")
+                        
+                    # Check private key format
+                    private_key = credentials.get("private_key", "")
+                    if private_key:
+                        if private_key.startswith("-----BEGIN PRIVATE KEY-----"):
+                            st.success("✅ Private key formatı doğru")
+                        else:
+                            st.error("❌ Private key formatı hatalı")
+                    else:
+                        st.error("❌ Private key bulunamadı")
+                        
+                else:
+                    st.error("❌ Service account secrets bulunamadı")
+                
+                st.info("🔧 **Olası çözümler:**")
+                st.write("1. Streamlit Cloud app'ı restart edin")
+                st.write("2. Google Cloud Console'da API'lerin aktif olduğunu kontrol edin")
+                st.write("3. Service Account'un Sheet'e erişim izni olduğunu kontrol edin")
+                st.write("4. Private key formatının doğru olduğunu kontrol edin")
                 
             sheet_id = st.secrets.get("GOOGLE_SHEET_ID")
             if sheet_id:
                 st.success(f"✅ Sheet ID: {sheet_id[:10]}...")
+                st.code(f"Sheet URL: https://docs.google.com/spreadsheets/d/{sheet_id}")
             else:
                 st.error("❌ Sheet ID bulunamadı")
                 
@@ -157,6 +291,10 @@ class FeedbackService:
                     st.error("❌ Client Email hala placeholder")
                 else:
                     st.success(f"✅ Client Email: {client_email}")
+                    
+                # Show credential creation status
+                if self.gsheet_client is None:
+                    st.warning("⚠️ Client oluşturma süreci başarısız - Console output'u kontrol edin")
         
         # Try Google Sheets first
         if self._save_to_google_sheets(data):
