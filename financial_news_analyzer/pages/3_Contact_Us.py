@@ -3,15 +3,16 @@ Contact Us Page
 Professional contact form with modern design and user engagement
 """
 
-import streamlit as st
+import streamlit as st ##type: ignore 
 from datetime import datetime
+import json
 
 # Page configuration
 st.set_page_config(
     page_title="✉️ Contact Us",
     page_icon="✉️",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 def load_custom_css():
@@ -282,6 +283,108 @@ def main():
     """Main function for Contact Us page"""
     load_custom_css()
     
+    # Admin panel in sidebar (user-based authentication)
+    with st.sidebar:
+        # Get current user info (works in Streamlit Cloud)
+        try:
+            # Try different methods to get user info
+            if hasattr(st, 'experimental_user'):
+                user_info = st.experimental_user
+                current_user = getattr(user_info, 'email', None)
+            elif hasattr(st, 'context') and hasattr(st.context, 'headers'):
+                # Alternative method for newer versions
+                headers = st.context.headers
+                current_user = headers.get('Streamlit-User-Email', None)
+            else:
+                current_user = None
+        except Exception as e:
+            # Fallback for local development or errors
+            current_user = None
+        
+        # Check if current user is admin
+        admin_emails = [
+            "enesor8@gmail.com",  # Your main email
+            "332461013@ogr.uludag.edu.tr",   # Alternative email if you have one
+            # Add more admin emails here if needed
+        ]
+        
+        # Local development override (remove in production)
+        if current_user is None:
+            try:
+                # Check if we're in local development
+                if st.secrets.get("STREAMLIT_ENV", "production") == "development":
+                    if st.button("🧪 Local Admin Access (Dev Only)"):
+                        current_user = "enesor8@gmail.com"  # Set to your email for testing
+            except:
+                # If no secrets file, assume local development
+                if st.button("🧪 Local Admin Access (Dev Only)"):
+                    current_user = "enesor8@gmail.com"
+        
+        if current_user and current_user.lower() in [email.lower() for email in admin_emails]:
+            st.markdown("### 🔧 Admin Panel")
+            st.success(f"✅ Welcome Admin: {current_user}")
+            
+            if st.button("📋 View Messages", help="View all submitted contact messages"):
+                if 'contact_messages' in st.session_state and st.session_state.contact_messages:
+                    st.subheader(f"📩 Contact Messages ({len(st.session_state.contact_messages)})")
+                    
+                    for idx, msg in enumerate(reversed(st.session_state.contact_messages)):
+                        with st.expander(f"#{msg['id']} - {msg['name']} ({msg['priority']})", expanded=False):
+                            st.write(f"**📧 Email:** {msg['email']}")
+                            st.write(f"**📋 Subject:** {msg['subject']}")
+                            st.write(f"**🚨 Priority:** {msg['priority']}")
+                            st.write(f"**⏰ Time:** {msg['timestamp']}")
+                            st.write(f"**💬 Message:**")
+                            st.text_area("", value=msg['message'], height=100, disabled=True, key=f"msg_{idx}")
+                            
+                            # Additional info
+                            extras = []
+                            if msg['newsletter']: extras.append("📧 Newsletter")
+                            if msg['updates']: extras.append("🔔 Updates")  
+                            if msg['callback']: extras.append("📞 Callback")
+                            if extras:
+                                st.write(f"**✅ Subscriptions:** {', '.join(extras)}")
+                            
+                            st.markdown("---")
+                else:
+                    st.info("📭 No messages yet")
+            
+            # Clear messages button
+            if st.button("🗑️ Clear All", help="Clear all stored messages"):
+                if 'contact_messages' in st.session_state:
+                    count = len(st.session_state.contact_messages)
+                    st.session_state.contact_messages = []
+                    st.success(f"🗑️ Cleared {count} messages")
+                    st.rerun()
+            
+            # Download messages as JSON
+            if st.button("💾 Download Data", help="Download messages as JSON"):
+                if 'contact_messages' in st.session_state and st.session_state.contact_messages:
+                    json_data = json.dumps(st.session_state.contact_messages, indent=2)
+                    st.download_button(
+                        label="📥 Download JSON",
+                        data=json_data,
+                        file_name=f"contact_messages_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                        mime="application/json"
+                    )
+                else:
+                    st.warning("No data to download")
+        elif current_user:
+            # User is logged in but not admin
+            st.info(f"👤 Logged in as: {current_user}")
+            st.warning("🚫 Admin access required")
+        else:
+            # No user logged in or local development
+            st.info("🔒 Please log in to Streamlit Cloud to access admin features")
+            st.markdown("""
+            <div style="padding: 10px; border-left: 3px solid #FFA500; background-color: rgba(255, 165, 0, 0.1); margin: 10px 0;">
+                <small>
+                <strong>💡 Note:</strong> Admin panel is only available when logged into Streamlit Cloud 
+                with an authorized email address.
+                </small>
+            </div>
+            """, unsafe_allow_html=True)
+    
     # Header - matching other pages design
     st.markdown("""
     <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2c3e50 100%); 
@@ -418,6 +521,25 @@ def main():
             # Form validation and success handling
             if submitted:
                 if name.strip() and email.strip() and message.strip():
+                    # Store message in session state (cloud-compatible)
+                    if 'contact_messages' not in st.session_state:
+                        st.session_state.contact_messages = []
+                    
+                    message_data = {
+                        'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        'name': name.strip(),
+                        'email': email.strip(),
+                        'subject': subject,
+                        'priority': priority,
+                        'message': message.strip(),
+                        'newsletter': newsletter,
+                        'updates': updates,
+                        'callback': callback,
+                        'id': len(st.session_state.contact_messages) + 1
+                    }
+                    
+                    st.session_state.contact_messages.append(message_data)
+                    
                     # Success message with animation
                     st.success("✅ Thank you! Your message has been sent successfully.")
                     st.balloons()
@@ -428,7 +550,8 @@ def main():
                     - **Name:** {name}
                     - **Subject:** {subject}
                     - **Priority:** {priority}
-                    - **Submitted:** {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+                    - **Message ID:** #{message_data['id']}
+                    - **Submitted:** {message_data['timestamp']}
                     """)
                     
                     # Response time estimate
@@ -440,6 +563,9 @@ def main():
                         response_time = "within 24-48 hours"
                     
                     st.info(f"📅 **Expected Response Time:** {response_time}")
+                    
+                    # Show message count
+                    st.success(f"📊 Total messages received: {len(st.session_state.contact_messages)}")
                     
                 else:
                     st.error("⚠️ Please fill in all required fields (Name, Email, and Message).")
