@@ -19,7 +19,14 @@ First off, thank you for considering contributing to Financial News Analyzer! �
 - Create a feature branch
 - Follow coding standards
 - Add comprehensive tests
+- Update documentation
 - Submit a pull request
+
+### ✉️ Contact & Support
+- Use the built-in Contact Us page
+- Professional support interface
+- Priority-based issue handling
+- FAQ section available
 
 ## 📋 Development Guidelines
 
@@ -46,13 +53,14 @@ First off, thank you for considering contributing to Financial News Analyzer! �
 - Add inline comments for complex logic
 - Document API changes
 - Include usage examples
+- Update Contact Us information for new features
 
 ## 🚀 Development Setup
 
 1. **Fork and Clone**
    ```bash
-   git clone https://github.com/your-username/mleng-financial_news_analyzer.git
-   cd financial_news_analyzer
+   git clone https://github.com/your-username/FINANCIALNEWSANALYZER.git
+   cd FINANCIALNEWSANALYZER/financial_news_analyzer
    ```
 
 2. **Create Virtual Environment**
@@ -64,10 +72,9 @@ First off, thank you for considering contributing to Financial News Analyzer! �
 3. **Install Dependencies**
    ```bash
    pip install -r requirements.txt
-   pip install -r requirements-dev.txt  # Development dependencies
    ```
 
-4. **Run Tests**
+4. **Run Tests** (when available)
    ```bash
    pytest tests/
    ```
@@ -89,10 +96,9 @@ First off, thank you for considering contributing to Financial News Analyzer! �
    - Add tests
    - Update documentation
 
-3. **Test Your Changes**
+3. **Test Your Changes** (when available)
    ```bash
    pytest tests/
-   flake8 src/
    ```
 
 4. **Commit Changes**
@@ -133,13 +139,16 @@ Use conventional commits for clear history:
 - `documentation` - Documentation improvements
 - `good first issue` - Beginner-friendly issues
 - `help wanted` - Issues needing assistance
+- `contact-system` - Contact form and support related
+- `ui-improvement` - User interface enhancements
 
 ## 📞 Getting Help
 
-- 💬 Join our Discord server
-- 📧 Email the maintainers
-- 📖 Check the documentation
-- 🔍 Search existing issues
+- ✉️ **Contact Form**: Use the built-in Contact Us page in the application
+- 📧 **Email**: Direct contact via enesor8@gmail.com
+- 📖 **Documentation**: Check the comprehensive README
+- 🔍 **Search Issues**: Look through existing GitHub issues
+- 💬 **Professional Support**: Available through the application interface
 
 ## 🙏 Recognition
 
