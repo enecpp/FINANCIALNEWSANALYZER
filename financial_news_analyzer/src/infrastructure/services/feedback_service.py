@@ -160,6 +160,11 @@ class FeedbackService:
             spreadsheet = self.gsheet_client.open_by_key(spreadsheet_id)
             st.success("🔧 Debug: Spreadsheet başarıyla açıldı")
             
+            # List all worksheets for debugging
+            worksheets = spreadsheet.worksheets()
+            worksheet_names = [ws.title for ws in worksheets]
+            st.info(f"🔧 Debug: Mevcut worksheet'ler: {worksheet_names}")
+            
             try:
                 worksheet = spreadsheet.worksheet("Feedback")
                 st.success("🔧 Debug: Feedback worksheet bulundu")
@@ -174,6 +179,11 @@ class FeedbackService:
                     "Timestamp", "Name", "Email", "Message", "Status"
                 ])
                 st.success("🔧 Debug: Feedback worksheet oluşturuldu")
+                
+            # Alternative: Use first worksheet if Feedback doesn't exist
+            if not worksheet:
+                worksheet = worksheets[0]
+                st.warning(f"🔧 Debug: İlk worksheet kullanılıyor: {worksheet.title}")
             
             # Add the data
             st.info("🔧 Debug: Veri ekleniyor...")
