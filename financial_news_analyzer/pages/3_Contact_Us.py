@@ -2,6 +2,7 @@
 
 import streamlit as st ##type: ignore 
 from datetime import datetime
+import urllib.parse
 
 # Page configuration
 st.set_page_config(
@@ -349,142 +350,105 @@ def main():
         </div>
         """, unsafe_allow_html=True)
         
-        # FormSubmit Contact Form - Real email functionality
-        st.markdown("""
-        <form action="https://formsubmit.co/enesor8@gmail.com" method="POST" style="
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            padding: 30px;
-            border-radius: 15px;
-            border: 1px solid #3a3a3a;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            color: #ffffff;
-            margin: 20px 0;
-        ">
-            <!-- FormSubmit Configuration -->
-            <input type="hidden" name="_subject" value="📧 New Contact - Financial News Analyzer">
-            <input type="hidden" name="_captcha" value="false">
-            <input type="hidden" name="_template" value="table">
-            <input type="hidden" name="_next" value="https://www.google.com">
+        # Contact Form with Streamlit components
+        with st.form("contact_form", clear_on_submit=True):
+            # Form styling container
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); 
+                        padding: 30px; border-radius: 15px; border: 1px solid #3a3a3a; 
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); margin: 20px 0;">
+            """, unsafe_allow_html=True)
             
-            <!-- Form Fields with proper name attributes -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                <div>
-                    <label for="name" style="display: block; margin-bottom: 8px; font-weight: 600; color: #00D4AA;">👤 Full Name *</label>
-                    <input type="text" name="name" id="name" required 
-                           placeholder="Enter your full name"
-                           style="width: 100%; padding: 12px; border: 1px solid #3a3a3a; 
-                                  border-radius: 8px; background-color: #34495e; color: #ffffff; 
-                                  font-size: 16px; transition: all 0.3s ease; box-sizing: border-box;">
-                </div>
-                <div>
-                    <label for="email" style="display: block; margin-bottom: 8px; font-weight: 600; color: #00D4AA;">📧 Email Address *</label>
-                    <input type="email" name="email" id="email" required 
-                           placeholder="your.email@example.com"
-                           style="width: 100%; padding: 12px; border: 1px solid #3a3a3a; 
-                                  border-radius: 8px; background-color: #34495e; color: #ffffff; 
-                                  font-size: 16px; transition: all 0.3s ease; box-sizing: border-box;">
-                </div>
-            </div>
+            # Form fields
+            col_name, col_email = st.columns(2)
+            with col_name:
+                name = st.text_input("👤 Full Name *", placeholder="Enter your full name", key="name")
+            with col_email:
+                email = st.text_input("📧 Email Address *", placeholder="your.email@example.com", key="email")
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                <div>
-                    <label for="subject" style="display: block; margin-bottom: 8px; font-weight: 600; color: #00D4AA;">📋 Subject</label>
-                    <select name="subject" id="subject" 
-                            style="width: 100%; padding: 12px; border: 1px solid #3a3a3a; 
-                                   border-radius: 8px; background-color: #34495e; color: #ffffff; 
-                                   font-size: 16px; transition: all 0.3s ease; box-sizing: border-box;">
-                        <option value="General Inquiry">General Inquiry</option>
-                        <option value="Technical Support">Technical Support</option>
-                        <option value="Feature Request">Feature Request</option>
-                        <option value="Bug Report">Bug Report</option>
-                        <option value="Partnership">Partnership</option>
-                        <option value="Investment Advice">Investment Advice</option>
-                        <option value="API Access">API Access</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="priority" style="display: block; margin-bottom: 8px; font-weight: 600; color: #00D4AA;">🚨 Priority</label>
-                    <select name="priority" id="priority" 
-                            style="width: 100%; padding: 12px; border: 1px solid #3a3a3a; 
-                                   border-radius: 8px; background-color: #34495e; color: #ffffff; 
-                                   font-size: 16px; transition: all 0.3s ease; box-sizing: border-box;">
-                        <option value="Low">Low</option>
-                        <option value="Medium" selected>Medium</option>
-                        <option value="High">High</option>
-                        <option value="Urgent">Urgent</option>
-                    </select>
-                </div>
-            </div>
+            col_subject, col_priority = st.columns(2)
+            with col_subject:
+                subject = st.selectbox("📋 Subject", [
+                    "General Inquiry", "Technical Support", "Feature Request", 
+                    "Bug Report", "Partnership", "Investment Advice", "API Access", "Other"
+                ], key="subject")
+            with col_priority:
+                priority = st.selectbox("🚨 Priority", ["Low", "Medium", "High", "Urgent"], index=1, key="priority")
             
-            <div style="margin-bottom: 20px;">
-                <label for="message" style="display: block; margin-bottom: 8px; font-weight: 600; color: #00D4AA;">💬 Message *</label>
-                <textarea name="message" id="message" required rows="6" 
-                          placeholder="Please describe your inquiry in detail..."
-                          style="width: 100%; padding: 12px; border: 1px solid #3a3a3a; 
-                                 border-radius: 8px; background-color: #34495e; color: #ffffff; 
-                                 font-size: 16px; resize: vertical; transition: all 0.3s ease; 
-                                 box-sizing: border-box; font-family: inherit;"></textarea>
-            </div>
+            message = st.text_area("💬 Message *", placeholder="Please describe your inquiry in detail...", 
+                                 height=150, key="message")
             
-            <!-- Additional Options -->
-            <div style="margin-bottom: 20px; padding: 15px; background-color: rgba(0, 212, 170, 0.1); border-radius: 8px;">
-                <h4 style="margin: 0 0 10px 0; color: #00D4AA;">📊 Additional Options</h4>
-                <div style="display: grid; gap: 8px;">
-                    <label style="display: flex; align-items: center; color: #bdc3c7;">
-                        <input type="checkbox" name="newsletter" value="Yes - Subscribe to newsletter" style="margin-right: 8px;">
-                        Subscribe to our newsletter for market updates
-                    </label>
-                    <label style="display: flex; align-items: center; color: #bdc3c7;">
-                        <input type="checkbox" name="updates" value="Yes - Receive product updates" style="margin-right: 8px;">
-                        Receive product updates and new features
-                    </label>
-                    <label style="display: flex; align-items: center; color: #bdc3c7;">
-                        <input type="checkbox" name="callback" value="Yes - Request callback" style="margin-right: 8px;">
-                        Request a callback (for urgent matters)
-                    </label>
-                </div>
-            </div>
+            st.markdown("### 📊 Additional Options")
+            col_opt1, col_opt2, col_opt3 = st.columns(3)
+            with col_opt1:
+                newsletter = st.checkbox("📰 Newsletter", help="Subscribe to market updates")
+            with col_opt2:
+                updates = st.checkbox("� Product Updates", help="Receive new features notifications")
+            with col_opt3:
+                callback = st.checkbox("📞 Request Callback", help="For urgent matters")
             
-            <!-- Submit Button -->
-            <button type="submit" style="
-                width: 100%;
-                padding: 15px;
-                background: linear-gradient(135deg, #00D4AA 0%, #007B5E 100%);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-size: 18px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 15px rgba(0, 212, 170, 0.3);
-            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(0, 212, 170, 0.4)';"
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 212, 170, 0.3)';">
-                📨 Send Message
-            </button>
+            # Submit button
+            submitted = st.form_submit_button("📨 Send Message", use_container_width=True)
             
-            <p style="margin-top: 15px; font-size: 14px; color: #95a5a6; text-align: center;">
-                Your message will be sent directly to our team via secure email.
-            </p>
-        </form>
-        
-        <style>
-        /* Form field focus effects */
-        form input:focus, form textarea:focus, form select:focus {
-            outline: none !important;
-            border-color: #00D4AA !important;
-            box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2) !important;
-        }
-        
-        /* Responsive design for mobile */
-        @media (max-width: 768px) {
-            form div[style*="grid-template-columns: 1fr 1fr"] {
-                grid-template-columns: 1fr !important;
-            }
-        }
-        </style>
-        """, unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+            # Handle form submission
+            if submitted:
+                if name and email and message:
+                    # Create FormSubmit URL with parameters
+                    import urllib.parse
+                    
+                    # Prepare form data
+                    form_data = {
+                        "name": name,
+                        "email": email,
+                        "subject": subject,
+                        "priority": priority,
+                        "message": message,
+                        "newsletter": "Yes" if newsletter else "No",
+                        "updates": "Yes" if updates else "No", 
+                        "callback": "Yes" if callback else "No",
+                        "_subject": f"📧 New Contact - {subject} ({priority} Priority)",
+                        "_captcha": "false",
+                        "_template": "table"
+                    }
+                    
+                    # Create FormSubmit URL
+                    base_url = "https://formsubmit.co/enesor8@gmail.com"
+                    query_string = urllib.parse.urlencode(form_data)
+                    formsubmit_url = f"{base_url}?{query_string}"
+                    
+                    # Success message and redirect
+                    st.success("✅ Thank you! Your message is being sent...")
+                    st.markdown(f"""
+                    <script>
+                        window.open('{formsubmit_url}', '_blank');
+                    </script>
+                    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #27AE60 0%, #2ECC71 100%); 
+                                border-radius: 10px; color: white; margin: 20px 0;">
+                        <h3>📧 Message Sent Successfully!</h3>
+                        <p>We'll get back to you within 24 hours.</p>
+                        <p><strong>Details:</strong> {subject} | Priority: {priority}</p>
+                        <a href="{formsubmit_url}" target="_blank" style="color: white; text-decoration: underline;">
+                            Click here if the email form doesn't open automatically
+                        </a>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Alternative: Direct FormSubmit link
+                    st.markdown(f"""
+                    <div style="text-align: center; margin: 20px 0;">
+                        <a href="{formsubmit_url}" target="_blank" 
+                           style="background: linear-gradient(135deg, #00D4AA 0%, #007B5E 100%); 
+                                  color: white; padding: 15px 30px; border-radius: 8px; 
+                                  text-decoration: none; font-weight: 600; display: inline-block;
+                                  box-shadow: 0 4px 15px rgba(0, 212, 170, 0.3);">
+                            📨 Send via FormSubmit
+                        </a>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.error("❌ Please fill in all required fields (Name, Email, Message)")
     
     with col2:
         # Contact information card
