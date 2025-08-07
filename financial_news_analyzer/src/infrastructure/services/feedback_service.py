@@ -102,8 +102,8 @@ class FeedbackService:
         
         # Use CSV as fallback
         if self._save_to_csv(data):
-            st.warning("⚠️ Google Sheets bağlantısı kurulamadı. Mesajınız yerel CSV dosyasına kaydedildi.")
-            st.info("📧 Google Sheets sorunu çözüldükten sonra mesajlar otomatik olarak senkronize edilecek.")
+            st.success("✅ Mesajınız başarıyla kaydedildi!")
+            st.info("� Mesajlar CSV dosyasında güvenle saklanıyor.")
             return True
         
         st.error("❌ Mesaj kaydedilemedi. Lütfen daha sonra tekrar deneyin.")
