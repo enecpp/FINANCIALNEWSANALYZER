@@ -16,7 +16,8 @@ def load_custom_css():
     """Load custom CSS for consistent styling"""
     st.markdown("""
     <style>
-    /* Main theme colors - matching other pages */
+    /* Mai            with col_opt2:
+                updates = st.checkbox("🔔 Product Updates", help="Receive new features notifications")theme colors - matching other pages */
     :root {
         --primary-bg: #1a1a1a;
         --secondary-bg: #2c3e50;
@@ -352,13 +353,6 @@ def main():
         
         # Contact Form with Streamlit components
         with st.form("contact_form", clear_on_submit=True):
-            # Form styling container
-            st.markdown("""
-            <div style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); 
-                        padding: 30px; border-radius: 15px; border: 1px solid #3a3a3a; 
-                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); margin: 20px 0;">
-            """, unsafe_allow_html=True)
-            
             # Form fields
             col_name, col_email = st.columns(2)
             with col_name:
@@ -389,8 +383,6 @@ def main():
             
             # Submit button
             submitted = st.form_submit_button("📨 Send Message", use_container_width=True)
-            
-            st.markdown("</div>", unsafe_allow_html=True)
             
             # Handle form submission
             if submitted:
